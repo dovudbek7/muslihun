@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, BookOpen, Volume2 } from 'lucide-react'
+import { Play, BookOpen, Bookmark } from 'lucide-react'
 import { ArabicText } from './ArabicText'
 import { cn } from '@/components/ui/cn'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAudioStore } from '@/stores/audioStore'
+import { useToggleBookmark, useBookmarkIds } from '@/api/quran'
 import type { Verse } from '@/types/quran'
 
 interface VerseCardProps {
@@ -18,9 +19,12 @@ interface VerseCardProps {
 export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVisible }: VerseCardProps) {
   const [showActions, setShowActions] = useState(false)
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>()
-  const { openTafsir, arabicOnly, showTransliteration, zenMode, language } = useQuranStore()
+  const { openTafsir, arabicOnly, showTransliteration, zenMode, language, reciterIdentifier } = useQuranStore()
   const { play, currentVerse, currentSurah } = useAudioStore()
+  const { data: bookmarkIds } = useBookmarkIds()
+  const toggleBookmark = useToggleBookmark()
   const cardRef = useRef<HTMLDivElement>(null)
+  const isBookmarked = bookmarkIds?.has(verse.id) ?? false
 
   useEffect(() => {
     if (!onVisible || !cardRef.current) return
@@ -49,8 +53,12 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
   }
 
   const handlePlayVerse = () => {
-    const url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${surahNumber.toString().padStart(3, '0')}${verse.number.toString().padStart(3, '0')}.mp3`
+    const url = `https://cdn.islamic.network/quran/audio/128/${reciterIdentifier}/${surahNumber.toString().padStart(3, '0')}${verse.number.toString().padStart(3, '0')}.mp3`
     play(surahNumber, verse.number, url, totalVerses)
+  }
+
+  const handleBookmark = () => {
+    toggleBookmark.mutate({ verse_id: verse.id })
   }
 
   if (zenMode) {
@@ -150,6 +158,12 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
               icon={<BookOpen size={14} />}
               label="Tafsir"
               onClick={() => { openTafsir(surahNumber, verse.number); setShowActions(false) }}
+            />
+            <ActionBtn
+              icon={<Bookmark size={14} />}
+              label={isBookmarked ? "Saqlangan" : "Saqlash"}
+              onClick={handleBookmark}
+              active={isBookmarked}
             />
           </motion.div>
         )}

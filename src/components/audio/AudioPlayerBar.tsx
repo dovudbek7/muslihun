@@ -1,4 +1,5 @@
-import { Play, Pause, Square, Volume2, VolumeX, SkipForward, Repeat } from 'lucide-react'
+import { Play, Pause, Square, Volume2, VolumeX, SkipForward, Repeat, Home, BookOpen, Brain, AlignJustify, User } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAudioStore } from '@/stores/audioStore'
 import { useAudioPlayer } from '@/hooks/useAudioPlayer'
 import { cn } from '@/components/ui/cn'
@@ -10,6 +11,14 @@ function formatTime(s: number): string {
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
+const NAV_ITEMS = [
+  { path: '/', icon: Home, label: 'Bosh' },
+  { path: '/read', icon: BookOpen, label: "Qur'on" },
+  { path: '/hifz', icon: Brain, label: 'Hifz' },
+  { path: '/tasbih', icon: AlignJustify, label: 'Tasbih' },
+  { path: '/profile', icon: User, label: 'Profil' },
+]
+
 export function AudioPlayerBar() {
   const {
     isPlaying, isLoading, currentSurah, currentVerse,
@@ -18,12 +27,35 @@ export function AudioPlayerBar() {
   } = useAudioStore()
 
   const { seek } = useAudioPlayer()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0
 
   return (
-    <div className="fixed bottom-16 left-0 right-0 z-30 safe-bottom">
-      <div className="mx-2 mb-1 bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-30 safe-bottom">
+      {/* Mini nav row — mobile only, desktop has sidebar */}
+      <div className="lg:hidden flex bg-bg-card/95 backdrop-blur-sm border-t border-border-subtle">
+        {NAV_ITEMS.map(({ path, icon: Icon, label }) => {
+          const active = path === '/' ? pathname === '/' : pathname.startsWith(path)
+          return (
+            <button
+              key={path}
+              onClick={() => navigate(path)}
+              className={cn(
+                'flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 text-[9px] transition-colors',
+                active ? 'text-accent' : 'text-text-muted hover:text-text-secondary'
+              )}
+            >
+              <Icon size={16} />
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Player controls */}
+      <div className="mx-2 mb-1.5 bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
         <div
           className="h-0.5 bg-bg-elevated cursor-pointer"
           onClick={(e) => {

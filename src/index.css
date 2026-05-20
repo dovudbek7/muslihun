@@ -1,15 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@font-face {
-  font-family: 'Uthmanic Hafs';
-  src: url('/fonts/UthmanicHafs_V22.woff2') format('woff2'),
-       url('/fonts/UthmanicHafs_V22.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: block;
-}
 
 :root, [data-theme="dark"] {
   --bg-primary: #120F0E;

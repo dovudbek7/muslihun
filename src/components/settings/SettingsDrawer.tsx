@@ -3,6 +3,7 @@ import { Drawer } from '@/components/ui/Drawer'
 import { useUIStore, type Theme } from '@/stores/uiStore'
 import { useQuranStore } from '@/stores/quranStore'
 import { cn } from '@/components/ui/cn'
+import { RECITERS } from '@/constants/quran'
 
 const THEMES: { id: Theme; label: string; icon: React.ReactNode; bg: string }[] = [
   { id: 'dark', label: 'Qora', icon: <Moon size={16} />, bg: 'bg-[#120F0E] border-[#D4AF37]/20' },
@@ -17,13 +18,6 @@ const FONT_SIZES = [
   { label: 'Juda katta', value: 30 },
 ]
 
-const RECITERS = [
-  { id: 'ar.alafasy', label: 'Mishary Alafasy' },
-  { id: 'ar.abdurrahmaansudais', label: 'Abdurrahman Sudais' },
-  { id: 'ar.husary', label: 'Mahmoud Khalil Al-Husary' },
-  { id: 'ar.minshawi', label: 'Mohamed Siddiq Al-Minshawi' },
-]
-
 export function SettingsDrawer() {
   const { activeDrawer, closeDrawer, theme, setTheme } = useUIStore()
   const {
@@ -32,6 +26,7 @@ export function SettingsDrawer() {
     tajweedMode, toggleTajweedMode,
     arabicOnly, toggleArabicOnly,
     showTransliteration, toggleTransliteration,
+    reciterIdentifier, setReciterIdentifier,
   } = useQuranStore()
 
   const open = activeDrawer === 'settings'
@@ -150,10 +145,21 @@ export function SettingsDrawer() {
             {RECITERS.map(r => (
               <button
                 key={r.id}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-bg-elevated transition-colors text-left"
+                onClick={() => setReciterIdentifier(r.id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left',
+                  reciterIdentifier === r.id
+                    ? 'bg-accent/10 border border-accent/30'
+                    : 'hover:bg-bg-elevated border border-transparent'
+                )}
               >
-                <Mic size={14} className="text-text-muted" />
-                <span className="text-sm text-text-secondary">{r.label}</span>
+                <Mic size={14} className={reciterIdentifier === r.id ? 'text-accent' : 'text-text-muted'} />
+                <div>
+                  <span className={cn('text-sm block', reciterIdentifier === r.id ? 'text-accent font-medium' : 'text-text-secondary')}>
+                    {r.name}
+                  </span>
+                  <span className="font-arabic text-xs text-text-muted">{r.name_ar}</span>
+                </div>
               </button>
             ))}
           </div>

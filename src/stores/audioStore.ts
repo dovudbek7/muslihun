@@ -32,8 +32,8 @@ interface AudioStore {
   nextVerse: () => void
 }
 
-const CDN_VERSE_URL = (surah: number, verse: number) =>
-  `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${String(surah).padStart(3, '0')}${String(verse).padStart(3, '0')}.mp3`
+const CDN_VERSE_URL = (surah: number, verse: number, reciter = 'ar.alafasy') =>
+  `https://cdn.islamic.network/quran/audio/128/${reciter}/${String(surah).padStart(3, '0')}${String(verse).padStart(3, '0')}.mp3`
 
 export const useAudioStore = create<AudioStore>((set, get) => ({
   isPlaying: false,

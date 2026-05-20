@@ -2,6 +2,8 @@ import { motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { buildRoute } from '@/constants/routes'
+import { usePage } from '@/api/quran'
+import { useQuranStore } from '@/stores/quranStore'
 import type { Surah, Verse } from '@/types/quran'
 
 interface MushafViewProps {
@@ -20,6 +22,11 @@ function toArabicNumerals(n: number): string {
 
 export function MushafView({ verses, fontSize, page, surah }: MushafViewProps) {
   const navigate = useNavigate()
+  const { language } = useQuranStore()
+
+  // Silent prefetch adjacent pages
+  usePage(page - 1, language)
+  usePage(page + 1, language)
 
   const goTo = (p: number) => {
     if (p < 1 || p > TOTAL_PAGES) return

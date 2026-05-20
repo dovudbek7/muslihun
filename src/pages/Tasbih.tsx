@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { RotateCcw, Check } from 'lucide-react'
+import { RotateCcw, Check, Hash } from 'lucide-react'
 import {
   useTasbihDhikr,
   useTasbihSessions,
@@ -28,6 +28,7 @@ interface LocalSession {
 export function Tasbih() {
   const [localSession, setLocalSession] = useState<LocalSession | null>(null)
   const [backendSessionId, setBackendSessionId] = useState<number | null>(null)
+  const [simpleCount, setSimpleCount] = useState<number | null>(null)
 
   const { data: dhikrList, isLoading: dhikrLoading } = useTasbihDhikr()
   const { data: sessions } = useTasbihSessions()
@@ -80,13 +81,69 @@ export function Tasbih() {
     )
   }
 
+  if (simpleCount !== null) {
+    return (
+      <div className="px-4 py-6 flex flex-col items-center gap-8">
+        <h1 className="text-text-primary font-semibold text-xl self-start">Oddiy tasbih</h1>
+        <div className="relative w-52 h-52">
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={() => setSimpleCount(c => (c ?? 0) + 1)}
+            className="absolute inset-0 rounded-full bg-accent/10 border-2 border-accent/20 hover:bg-accent/15 active:bg-accent/25 flex flex-col items-center justify-center select-none"
+          >
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={simpleCount}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 1.1, opacity: 0 }}
+                className="text-5xl font-bold text-accent"
+              >
+                {simpleCount}
+              </motion.span>
+            </AnimatePresence>
+            <span className="text-text-muted text-xs mt-1">bosing</span>
+          </motion.button>
+        </div>
+        <div className="flex gap-3">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSimpleCount(0)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-secondary text-sm hover:text-text-primary transition-colors"
+          >
+            <RotateCcw size={14} />
+            Nolga
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setSimpleCount(null)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-bg-elevated border border-border-subtle text-text-secondary text-sm hover:text-text-primary transition-colors"
+          >
+            Orqaga
+          </motion.button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 py-6">
       <h1 className="text-text-primary font-semibold text-xl mb-6">Tasbih</h1>
 
       {!localSession ? (
         <div className="space-y-3">
-          <p className="text-text-muted text-sm mb-4">Zikr tanlang:</p>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setSimpleCount(0)}
+            className="w-full flex items-center gap-3 px-4 py-4 bg-accent/10 border border-accent/30 rounded-xl hover:bg-accent/15 transition-all mb-2"
+          >
+            <Hash size={18} className="text-accent flex-shrink-0" />
+            <div className="text-left">
+              <p className="text-accent font-medium text-sm">Oddiy tasbih</p>
+              <p className="text-text-muted text-xs mt-0.5">Zikrsiz shunchaki sanoq</p>
+            </div>
+          </motion.button>
+          <p className="text-text-muted text-sm mb-2">Yoki zikr tanlang:</p>
           {displayDhikr.map((dhikr) => (
             <motion.button
               key={dhikr.id}

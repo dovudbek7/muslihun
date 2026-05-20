@@ -33,6 +33,8 @@ export function NavigationDrawer() {
 
   const open = activeDrawer === 'surah' || activeDrawer === 'page' || activeDrawer === 'juz'
 
+  const pageNumbers = useMemo(() => Array.from({ length: 604 }, (_, i) => i + 1), [])
+
   const filteredSurahs = useMemo(() => {
     if (!data?.surahs) return []
     const q = search.toLowerCase()
@@ -149,7 +151,7 @@ export function NavigationDrawer() {
                   </button>
                 </div>
                 <div className="grid grid-cols-8 gap-1 max-h-[50dvh] overflow-y-auto no-scrollbar py-1">
-                  {Array.from({ length: 604 }, (_, i) => i + 1).map(n => (
+                  {pageNumbers.map(n => (
                     <button
                       key={n}
                       onClick={() => { navigate(buildRoute.page(n)); closeDrawer() }}

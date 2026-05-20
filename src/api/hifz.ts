@@ -3,6 +3,7 @@ import { api } from '@/config/api'
 import type {
   HifzSession, HifzProgress, ErrorLog,
   SurahProgressStats, ErrorStats, HifzMode, ErrorType,
+  HifzDashboard, TranscribeResult,
 } from '@/types/hifz'
 
 export const hifzKeys = {
@@ -13,6 +14,7 @@ export const hifzKeys = {
   errors: (type?: ErrorType) => ['hifz', 'errors', type] as const,
   errorStats: ['hifz', 'errorStats'] as const,
   surahProgress: (n: number) => ['hifz', 'surahProgress', n] as const,
+  dashboard: ['hifz', 'dashboard'] as const,
 }
 
 export function useHifzSessions() {
@@ -100,5 +102,24 @@ export function useSurahProgress(surahNumber: number) {
     queryKey: hifzKeys.surahProgress(surahNumber),
     queryFn: () => api.get(`/hifz/progress/surah/${surahNumber}/`).then(r => r.data),
     enabled: surahNumber >= 1,
+  })
+}
+
+export function useHifzDashboard() {
+  return useQuery<HifzDashboard>({
+    queryKey: hifzKeys.dashboard,
+    queryFn: () => api.get('/hifz/dashboard/').then(r => r.data),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useTranscribeVerse() {
+  return useMutation<TranscribeResult, Error, { verse_id: number; audio: Blob }>({
+    mutationFn: async ({ verse_id, audio }) => {
+      const form = new FormData()
+      form.append('verse_id', String(verse_id))
+      form.append('audio', audio, 'recording.webm')
+      return api.post('/hifz/transcribe/', form).then(r => r.data)
+    },
   })
 }

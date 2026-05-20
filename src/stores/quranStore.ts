@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Language, ReadingMode } from '@/types/quran'
-import { FONT_SIZE_DEFAULT } from '@/constants/quran'
+import { FONT_SIZE_DEFAULT, type ReciterId } from '@/constants/quran'
 
 interface QuranState {
   currentSurah: number
@@ -15,6 +15,7 @@ interface QuranState {
   arabicOnly: boolean
   zenMode: boolean
   showTransliteration: boolean
+  reciterIdentifier: ReciterId
   activeTafsirVerse: { surah: number; verse: number } | null
 
   setCurrentSurah: (n: number) => void
@@ -28,6 +29,7 @@ interface QuranState {
   toggleArabicOnly: () => void
   toggleZenMode: () => void
   toggleTransliteration: () => void
+  setReciterIdentifier: (id: ReciterId) => void
   openTafsir: (surah: number, verse: number) => void
   closeTafsir: () => void
   navigateTo: (surah: number, verse?: number, page?: number) => void
@@ -47,6 +49,7 @@ export const useQuranStore = create<QuranState>()(
       arabicOnly: false,
       zenMode: false,
       showTransliteration: false,
+      reciterIdentifier: 'ar.alafasy',
       activeTafsirVerse: null,
 
       setCurrentSurah: (n) => set({ currentSurah: n }),
@@ -60,6 +63,7 @@ export const useQuranStore = create<QuranState>()(
       toggleArabicOnly: () => set((s) => ({ arabicOnly: !s.arabicOnly })),
       toggleZenMode: () => set((s) => ({ zenMode: !s.zenMode })),
       toggleTransliteration: () => set((s) => ({ showTransliteration: !s.showTransliteration })),
+      setReciterIdentifier: (id) => set({ reciterIdentifier: id }),
       openTafsir: (surah, verse) => set({ activeTafsirVerse: { surah, verse } }),
       closeTafsir: () => set({ activeTafsirVerse: null }),
       navigateTo: (surah, verse = 1, page) =>
@@ -77,6 +81,7 @@ export const useQuranStore = create<QuranState>()(
         tajweedMode: s.tajweedMode,
         arabicOnly: s.arabicOnly,
         showTransliteration: s.showTransliteration,
+        reciterIdentifier: s.reciterIdentifier,
       }),
     }
   )

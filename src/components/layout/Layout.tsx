@@ -13,7 +13,14 @@ import { Toast } from '@/components/ui/Toast'
 import { SettingsDrawer } from '@/components/settings/SettingsDrawer'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAudioStore } from '@/stores/audioStore'
+import { useAudioPlayer } from '@/hooks/useAudioPlayer'
 import { cn } from '@/components/ui/cn'
+
+// Always-mounted so audio element exists before user taps play (preserves gesture context)
+function AudioEngine() {
+  useAudioPlayer()
+  return null
+}
 
 interface LayoutProps {
   children: ReactNode
@@ -45,12 +52,24 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
   const onTouchEnd = useCallback(async () => {
     if (pullDist >= PULL_THRESHOLD) {
       setRefreshing(true)
-      await qc.invalidateQueries()
+      const path = location.pathname
+      if (path.startsWith('/hifz')) {
+        await qc.invalidateQueries({ queryKey: ['hifz'] })
+      } else if (path.startsWith('/read')) {
+        await qc.invalidateQueries({ queryKey: ['quran'] })
+      } else if (path.startsWith('/tasbih')) {
+        await qc.invalidateQueries({ queryKey: ['gamification'] })
+      } else if (path.startsWith('/profile')) {
+        await qc.invalidateQueries({ queryKey: ['auth'] })
+        await qc.invalidateQueries({ queryKey: ['gamification'] })
+      } else {
+        await qc.invalidateQueries()
+      }
       setTimeout(() => { setRefreshing(false); setPullDist(0) }, 800)
     } else {
       setPullDist(0)
     }
-  }, [pullDist, qc])
+  }, [pullDist, qc, location.pathname])
 
   return (
     <div
@@ -59,6 +78,7 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
+      <AudioEngine />
       <Sidebar />
 
       <div className="flex flex-col flex-1 min-w-0 lg:max-w-2xl lg:mx-auto w-full">
@@ -92,8 +112,8 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
         <main
           className={cn(
             'flex-1',
-            !zenMode && 'pb-20',
-            !!audioUrl && !zenMode && 'pb-36'
+            !zenMode && !audioUrl && 'pb-20 lg:pb-0',
+            !!audioUrl && !zenMode && 'pb-20 lg:pb-4'
           )}
         >
           <AnimatePresence mode="wait">
@@ -110,7 +130,7 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
         </main>
 
         <AnimatePresence>
-          {!zenMode && (
+          {!zenMode && !audioUrl && (
             <motion.div
               key="bottomnav"
               initial={{ y: 64, opacity: 0 }}

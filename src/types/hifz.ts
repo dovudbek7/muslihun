@@ -58,3 +58,37 @@ export interface ErrorStats {
   due_for_review: number
   most_problematic_verses: HifzProgress[]
 }
+
+export interface DailyReview {
+  date: string
+  count: number
+  label: string
+}
+
+export interface SurahTopEntry {
+  surah_number: number
+  surah_name: string
+  total_verses: number
+  memorized: number
+  percent: number
+}
+
+export interface HifzDashboard {
+  status_counts: { memorized: number; learning: number; weak: number; new: number }
+  total_in_progress: number
+  due_count: number
+  daily_reviews: DailyReview[]
+  top_surahs: SurahTopEntry[]
+}
+
+export interface TranscribeWord {
+  text: string
+  correct: boolean
+}
+
+export interface TranscribeResult {
+  transcription: string
+  match_percent: number
+  words: TranscribeWord[]
+  verse_text: string
+}

@@ -76,3 +76,15 @@ export interface TafsirDetail {
   source: string
   content: string
 }
+
+export interface BookmarkItem {
+  id: number
+  verse: number
+  surah_number: number
+  verse_number: number
+  text_arabic: string
+  page_number: number
+  color: 'gold' | 'green' | 'blue' | 'red'
+  note: string
+  created_at: string
+}

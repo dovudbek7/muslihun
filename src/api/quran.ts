@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/config/api'
-import type { Surah, Verse, PageData, JuzData, NavigationData, TafsirDetail, Language } from '@/types/quran'
+import type { Surah, Verse, PageData, JuzData, NavigationData, TafsirDetail, Language, BookmarkItem } from '@/types/quran'
 
 const STALE_TIME = 1000 * 60 * 60 * 24
 
@@ -13,6 +13,7 @@ export const quranKeys = {
   juz: (n: number, lang: Language) => ['quran', 'juz', n, lang] as const,
   tafsir: (s: number, v: number, lang: Language) => ['quran', 'tafsir', s, v, lang] as const,
   navigation: ['quran', 'navigation'] as const,
+  bookmarks: ['quran', 'bookmarks'] as const,
 }
 
 export function useSurahs(lang: Language = 'en') {
@@ -80,5 +81,28 @@ export function useNavigationData() {
     queryFn: () => api.get('/quran/navigation/').then(r => r.data),
     staleTime: STALE_TIME,
     gcTime: STALE_TIME * 30,
+  })
+}
+
+export function useBookmarks() {
+  return useQuery<BookmarkItem[]>({
+    queryKey: quranKeys.bookmarks,
+    queryFn: () => api.get('/quran/bookmarks/').then(r => r.data),
+    staleTime: 1000 * 60 * 5,
+  })
+}
+
+export function useBookmarkIds() {
+  const { data } = useBookmarks()
+  return {
+    data: data ? new Set(data.map(b => b.verse)) : undefined,
+  }
+}
+
+export function useToggleBookmark() {
+  const qc = useQueryClient()
+  return useMutation<unknown, Error, { verse_id: number }>({
+    mutationFn: ({ verse_id }) => api.post(`/quran/bookmarks/toggle/${verse_id}/`).then(r => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: quranKeys.bookmarks }),
   })
 }

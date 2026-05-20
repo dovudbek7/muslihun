@@ -37,6 +37,16 @@ export const PRAYER_METHOD_OPTIONS = [
   { value: 5, label: 'University of Islamic Sciences, Karachi' },
 ]
 
+export const RECITERS = [
+  { id: 'ar.alafasy', name: 'Mishary Alafasy', name_ar: 'مشاري العفاسي' },
+  { id: 'ar.abdulbasitmurattal', name: 'Abdul Basit (Murattal)', name_ar: 'عبد الباسط' },
+  { id: 'ar.minshawi', name: 'Mohamed Al-Minshawi', name_ar: 'محمد المنشاوي' },
+  { id: 'ar.husary', name: 'Mahmoud Al-Husary', name_ar: 'محمود الحصري' },
+  { id: 'ar.mahermuaiqly', name: 'Maher Al-Muaiqly', name_ar: 'ماهر المعيقلي' },
+] as const
+
+export type ReciterId = typeof RECITERS[number]['id']
+
 export const LANGUAGE_LABELS: Record<string, string> = {
   en: 'English',
   ru: 'Русский',
