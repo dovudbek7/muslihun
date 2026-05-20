@@ -1,0 +1,20 @@
+{
+  "name": "Muslihun — Qur'on",
+  "short_name": "Muslihun",
+  "description": "Premium Quran Ecosystem — o'qish, tinglash, hifz",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#120F0E",
+  "theme_color": "#120F0E",
+  "orientation": "portrait",
+  "lang": "uz",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "lifestyle", "religion"]
+}

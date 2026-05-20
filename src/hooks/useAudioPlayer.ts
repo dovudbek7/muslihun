@@ -20,7 +20,7 @@ export function useAudioPlayer() {
         audio.currentTime = 0
         audio.play()
       } else {
-        store.pause()
+        store.nextVerse()
       }
     }
     const onWaiting = () => store.setLoading(true)

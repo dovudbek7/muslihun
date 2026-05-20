@@ -44,11 +44,7 @@ export function NavigationDrawer() {
     )
   }, [data?.surahs, search])
 
-  const getSurahName = (s: import('@/types/quran').Surah): string => {
-    if (language === 'ru') return s.name_ru || s.name_transliteration
-    if (language === 'tr') return s.name_tr || s.name_transliteration
-    return s.name_transliteration
-  }
+  const getSurahName = (s: import('@/types/quran').Surah): string => s.name_transliteration
 
   const handleSurahSelect = (surahNumber: number, pageStart: number) => {
     navigateTo(surahNumber, 1, pageStart)

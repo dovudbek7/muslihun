@@ -6,23 +6,23 @@ const config: Config = {
     extend: {
       colors: {
         bg: {
-          primary: '#120F0E',
-          secondary: '#1A1613',
-          card: '#1F1A17',
-          elevated: '#251E1A',
-          hover: '#2C2420',
+          primary: 'var(--bg-primary)',
+          secondary: 'var(--bg-secondary)',
+          card: 'var(--bg-card)',
+          elevated: 'var(--bg-elevated)',
+          hover: 'var(--bg-hover)',
         },
         accent: {
-          DEFAULT: '#D4AF37',
-          light: '#E8CA5A',
-          dim: '#9A7D26',
-          muted: 'rgba(212,175,55,0.15)',
+          DEFAULT: 'var(--accent)',
+          light: 'var(--accent-light)',
+          dim: 'var(--accent-dim)',
+          muted: 'var(--accent-muted)',
         },
         text: {
-          primary: '#F5F0E8',
-          secondary: '#B8AD9E',
-          muted: '#6B6259',
-          arabic: '#F0E8D5',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          arabic: 'var(--text-arabic)',
         },
         error: {
           red: '#E53E3E',
@@ -30,9 +30,9 @@ const config: Config = {
         },
         success: '#38A169',
         border: {
-          DEFAULT: 'rgba(212,175,55,0.12)',
-          subtle: 'rgba(255,255,255,0.06)',
-          strong: 'rgba(212,175,55,0.3)',
+          DEFAULT: 'var(--border)',
+          subtle: 'var(--border-subtle)',
+          strong: 'var(--border-strong)',
         },
       },
       fontFamily: {

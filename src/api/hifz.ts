@@ -18,7 +18,7 @@ export const hifzKeys = {
 export function useHifzSessions() {
   return useQuery<HifzSession[]>({
     queryKey: hifzKeys.sessions,
-    queryFn: () => api.get('/hifz/sessions/').then(r => r.data),
+    queryFn: () => api.get('/hifz/sessions/').then(r => r.data?.results ?? r.data),
   })
 }
 
@@ -26,7 +26,10 @@ export function useStartHifzSession() {
   const qc = useQueryClient()
   return useMutation<HifzSession, Error, { surah: number; mode: HifzMode }>({
     mutationFn: (payload) => api.post('/hifz/sessions/', payload).then(r => r.data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: hifzKeys.sessions }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: hifzKeys.sessions })
+      qc.invalidateQueries({ queryKey: hifzKeys.due })
+    },
   })
 }
 
@@ -43,7 +46,7 @@ export function useHifzProgress(status?: string) {
   return useQuery<HifzProgress[]>({
     queryKey: hifzKeys.progress(status),
     queryFn: () =>
-      api.get('/hifz/progress/', { params: status ? { status } : {} }).then(r => r.data),
+      api.get('/hifz/progress/', { params: status ? { status } : {} }).then(r => r.data?.results ?? r.data),
   })
 }
 
@@ -70,7 +73,7 @@ export function useErrorLogs(type?: ErrorType) {
   return useQuery<ErrorLog[]>({
     queryKey: hifzKeys.errors(type),
     queryFn: () =>
-      api.get('/hifz/errors/', { params: type ? { type } : {} }).then(r => r.data),
+      api.get('/hifz/errors/', { params: type ? { type } : {} }).then(r => r.data?.results ?? r.data),
   })
 }
 

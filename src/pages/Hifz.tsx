@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { BookOpen, Brain, AlertTriangle, CheckCircle2, Clock, ChevronRight, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Eye, EyeOff, Play, Pause } from 'lucide-react'
 import {
   useHifzSessions, useStartHifzSession,
   useDueVerses, useSubmitReview,
@@ -9,14 +8,18 @@ import {
 } from '@/api/hifz'
 import { useSurahs } from '@/api/quran'
 import { useQuranStore } from '@/stores/quranStore'
+import { useAudioStore } from '@/stores/audioStore'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/components/ui/cn'
 import type { HifzMode, HifzProgress } from '@/types/hifz'
 
 type Tab = 'review' | 'surahs' | 'errors'
 
+const CDN_RECITER = 'ar.alafasy'
+
 export function Hifz() {
   const [activeTab, setActiveTab] = useState<Tab>('review')
+  const [activeSurahSession, setActiveSurahSession] = useState<number | null>(null)
   const { language } = useQuranStore()
   const { data: dueVerses, isLoading: dueLoading } = useDueVerses()
   const { data: errorStats } = useErrorStats()
@@ -30,6 +33,17 @@ export function Hifz() {
     { id: 'surahs', label: 'Suralar' },
     { id: 'errors', label: 'Xatolar', count: (errorStats?.total_red ?? 0) + (errorStats?.total_yellow ?? 0) },
   ]
+
+  async function handleStartSession(surahNumber: number) {
+    try {
+      await startSession.mutateAsync({ surah: surahNumber, mode: 'hint' })
+      setActiveSurahSession(surahNumber)
+      setActiveTab('review')
+    } catch {
+      setActiveSurahSession(surahNumber)
+      setActiveTab('review')
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-full">
@@ -70,10 +84,10 @@ export function Hifz() {
             >
               {dueLoading ? (
                 <div className="flex justify-center py-12"><Spinner /></div>
-              ) : dueVerses?.length === 0 ? (
-                <EmptyReview />
+              ) : dueVerses && dueVerses.length > 0 ? (
+                <ReviewList verses={dueVerses} />
               ) : (
-                <ReviewList verses={dueVerses ?? []} />
+                <EmptyReview onGoToSurahs={() => setActiveTab('surahs')} />
               )}
             </motion.div>
           )}
@@ -89,14 +103,15 @@ export function Hifz() {
               {surahs?.map(surah => (
                 <button
                   key={surah.number}
-                  onClick={() => startSession.mutateAsync({ surah: surah.number, mode: 'hint' })}
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-bg-card border border-border-subtle rounded-xl hover:border-border transition-colors text-left"
+                  onClick={() => handleStartSession(surah.number)}
+                  disabled={startSession.isPending}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-bg-card border border-border-subtle rounded-xl hover:border-border transition-colors text-left disabled:opacity-50"
                 >
                   <span className="w-8 h-8 rounded-lg bg-bg-elevated flex items-center justify-center text-xs text-text-muted flex-shrink-0">
                     {surah.number}
                   </span>
                   <div className="flex-1">
-                    <p className="text-text-primary text-sm font-medium">{surah.name_en}</p>
+                    <p className="text-text-primary text-sm font-medium">{surah.name_transliteration}</p>
                     <p className="text-text-muted text-xs">{surah.total_verses} oyat</p>
                   </div>
                   <p className="font-arabic text-text-arabic text-base">{surah.name_arabic}</p>
@@ -151,7 +166,9 @@ export function Hifz() {
 function ReviewList({ verses }: { verses: HifzProgress[] }) {
   const [currentIdx, setCurrentIdx] = useState(0)
   const [showArabic, setShowArabic] = useState(false)
+  const [blindMode, setBlindMode] = useState(false)
   const submitReview = useSubmitReview()
+  const { play, pause, isPlaying, currentVerse: audioVerse, currentSurah: audioSurah } = useAudioStore()
 
   if (currentIdx >= verses.length) {
     return (
@@ -164,9 +181,23 @@ function ReviewList({ verses }: { verses: HifzProgress[] }) {
   }
 
   const verse = verses[currentIdx]
+  const isVerseAudioPlaying = isPlaying && audioSurah === verse.surah_number && audioVerse === verse.verse_number
+
+  function handlePlayVerse() {
+    if (isVerseAudioPlaying) {
+      pause()
+      return
+    }
+    const url = `https://cdn.islamic.network/quran/audio/128/${CDN_RECITER}/${String(verse.surah_number).padStart(3, '0')}${String(verse.verse_number).padStart(3, '0')}.mp3`
+    play(verse.surah_number, verse.verse_number, url)
+  }
 
   async function handleQuality(quality: number) {
-    await submitReview.mutateAsync({ verse_id: verse.id, quality })
+    try {
+      await submitReview.mutateAsync({ verse_id: verse.id, quality })
+    } catch {
+      // continue even if backend fails
+    }
     setShowArabic(false)
     setCurrentIdx(i => i + 1)
   }
@@ -175,26 +206,60 @@ function ReviewList({ verses }: { verses: HifzProgress[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <span className="text-text-muted text-sm">{currentIdx + 1} / {verses.length}</span>
-        <span className="text-text-muted text-xs">
-          {verse.surah_number}:{verse.verse_number}
-        </span>
+        <div className="flex items-center gap-2">
+          {!blindMode && (
+            <span className="text-text-muted text-xs">{verse.surah_number}:{verse.verse_number}</span>
+          )}
+          <button
+            onClick={() => { setBlindMode(b => !b); setShowArabic(false) }}
+            className={cn(
+              'flex items-center gap-1 px-2 py-1 rounded-lg text-xs transition-colors',
+              blindMode
+                ? 'bg-accent/20 text-accent'
+                : 'text-text-muted hover:text-text-secondary bg-bg-elevated'
+            )}
+            title={blindMode ? "Ko'rinadigan rejim" : "Ko'r rejim"}
+          >
+            {blindMode ? <EyeOff size={11} /> : <Eye size={11} />}
+            {blindMode ? 'Blind' : 'Hint'}
+          </button>
+        </div>
       </div>
 
       <div className="bg-bg-card border border-border-subtle rounded-2xl p-5">
         {showArabic ? (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="font-arabic text-text-arabic text-2xl leading-loose text-right"
-            dir="rtl"
           >
-            {verse.text_arabic}
-          </motion.p>
+            <p
+              className="font-arabic text-text-arabic text-2xl leading-loose text-right"
+              dir="rtl"
+            >
+              {verse.text_arabic}
+            </p>
+            <div className="flex justify-end mt-3">
+              <button
+                onClick={handlePlayVerse}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors',
+                  isVerseAudioPlaying
+                    ? 'bg-accent text-bg-primary'
+                    : 'bg-bg-elevated text-text-muted hover:text-accent'
+                )}
+              >
+                {isVerseAudioPlaying ? <Pause size={12} /> : <Play size={12} />}
+                {isVerseAudioPlaying ? 'To\'xtatish' : 'Tinglash'}
+              </button>
+            </div>
+          </motion.div>
         ) : (
           <div className="flex flex-col items-center py-6 gap-3">
             <EyeOff size={24} className="text-text-muted/40" />
             <p className="text-text-muted text-sm">Oyatni eslab ko'ring</p>
-            <p className="text-text-muted/60 text-xs">{verse.surah_number}:{verse.verse_number}</p>
+            {!blindMode && (
+              <p className="text-text-muted/60 text-xs">{verse.surah_number}:{verse.verse_number}</p>
+            )}
           </div>
         )}
       </div>
@@ -205,7 +270,7 @@ function ReviewList({ verses }: { verses: HifzProgress[] }) {
           className="w-full flex items-center justify-center gap-2 py-3 bg-bg-elevated border border-border-subtle rounded-xl text-text-secondary text-sm hover:text-text-primary transition-colors"
         >
           <Eye size={15} />
-          Ko'rsatish
+          {blindMode ? 'Tekshirish' : "Ko'rsatish"}
         </button>
       ) : (
         <div className="space-y-2">
@@ -221,7 +286,8 @@ function ReviewList({ verses }: { verses: HifzProgress[] }) {
                 key={quality}
                 whileTap={{ scale: 0.96 }}
                 onClick={() => handleQuality(quality)}
-                className={cn('py-3 rounded-xl border text-sm font-medium transition-all', color)}
+                disabled={submitReview.isPending}
+                className={cn('py-3 rounded-xl border text-sm font-medium transition-all disabled:opacity-50', color)}
               >
                 {label}
               </motion.button>
@@ -233,12 +299,20 @@ function ReviewList({ verses }: { verses: HifzProgress[] }) {
   )
 }
 
-function EmptyReview() {
+function EmptyReview({ onGoToSurahs }: { onGoToSurahs: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 gap-3">
+    <div className="flex flex-col items-center justify-center py-20 gap-4">
       <CheckCircle2 size={48} className="text-emerald-400/50" />
       <p className="text-text-primary font-medium">Bugunlik takror yo'q</p>
-      <p className="text-text-muted text-sm">Yangi sura qo'shish uchun "Suralar" tabini oching</p>
+      <p className="text-text-muted text-sm text-center">
+        Yangi sura qo'shish uchun "Suralar" tabini oching
+      </p>
+      <button
+        onClick={onGoToSurahs}
+        className="px-5 py-2.5 bg-accent/10 border border-accent/30 rounded-xl text-accent text-sm font-medium hover:bg-accent/20 transition-colors"
+      >
+        Suralar
+      </button>
     </div>
   )
 }

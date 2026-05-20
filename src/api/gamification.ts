@@ -37,7 +37,7 @@ export function useRecordActivity() {
 export function useTasbihDhikr() {
   return useQuery<TasbihDhikr[]>({
     queryKey: gamificationKeys.dhikrList,
-    queryFn: () => api.get('/gamification/tasbih/dhikr/').then(r => r.data),
+    queryFn: () => api.get('/gamification/tasbih/dhikr/').then(r => r.data?.results ?? r.data),
     staleTime: Infinity,
   })
 }
@@ -45,7 +45,7 @@ export function useTasbihDhikr() {
 export function useTasbihSessions() {
   return useQuery<TasbihSession[]>({
     queryKey: gamificationKeys.sessions,
-    queryFn: () => api.get('/gamification/tasbih/sessions/').then(r => r.data),
+    queryFn: () => api.get('/gamification/tasbih/sessions/').then(r => r.data?.results ?? r.data),
   })
 }
 
@@ -73,7 +73,7 @@ export function useIncrementTasbih() {
 export function useAchievements() {
   return useQuery<Achievement[]>({
     queryKey: gamificationKeys.achievements,
-    queryFn: () => api.get('/gamification/achievements/').then(r => r.data),
+    queryFn: () => api.get('/gamification/achievements/').then(r => r.data?.results ?? r.data),
     staleTime: Infinity,
   })
 }
@@ -81,7 +81,7 @@ export function useAchievements() {
 export function useMyAchievements() {
   return useQuery<UserAchievement[]>({
     queryKey: gamificationKeys.myAchievements,
-    queryFn: () => api.get('/gamification/achievements/mine/').then(r => r.data),
+    queryFn: () => api.get('/gamification/achievements/mine/').then(r => r.data?.results ?? r.data),
   })
 }
 

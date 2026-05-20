@@ -9,42 +9,68 @@ import {
 } from '@/api/gamification'
 import { Spinner } from '@/components/ui/Spinner'
 import { cn } from '@/components/ui/cn'
+import type { TasbihDhikr } from '@/types/gamification'
+
+const FALLBACK_DHIKR: TasbihDhikr[] = [
+  { id: 1, text_arabic: 'سُبْحَانَ اللهِ', text_transliteration: 'Subhanallah', text_en: 'Glory be to Allah', text_ru: 'Слава Аллаху', text_uz: 'Allohga hamdu sanolar', default_target: 33 },
+  { id: 2, text_arabic: 'اَلْحَمْدُ لِلهِ', text_transliteration: 'Alhamdulillah', text_en: 'Praise be to Allah', text_ru: 'Хвала Аллаху', text_uz: 'Barcha maqtovlar Allohga', default_target: 33 },
+  { id: 3, text_arabic: 'اَللهُ أَكْبَرُ', text_transliteration: 'Allahu Akbar', text_en: 'Allah is the Greatest', text_ru: 'Аллах велик', text_uz: 'Alloh ulugdir', default_target: 34 },
+  { id: 4, text_arabic: 'لَا إِلَهَ إِلَّا اللهُ', text_transliteration: 'La ilaha illallah', text_en: 'There is no god but Allah', text_ru: 'Нет бога, кроме Аллаха', text_uz: "Allohdan o'zga iloh yo'q", default_target: 100 },
+  { id: 5, text_arabic: 'أَسْتَغْفِرُ اللهَ', text_transliteration: 'Astaghfirullah', text_en: 'I seek forgiveness from Allah', text_ru: 'Прошу прощения у Аллаха', text_uz: 'Allohdan kechirim so\'rayman', default_target: 100 },
+]
+
+interface LocalSession {
+  dhikr: TasbihDhikr
+  count: number
+  target: number
+}
 
 export function Tasbih() {
-  const [activeSessionId, setActiveSessionId] = useState<number | null>(null)
-  const [localCount, setLocalCount] = useState(0)
+  const [localSession, setLocalSession] = useState<LocalSession | null>(null)
+  const [backendSessionId, setBackendSessionId] = useState<number | null>(null)
 
   const { data: dhikrList, isLoading: dhikrLoading } = useTasbihDhikr()
   const { data: sessions } = useTasbihSessions()
   const createSession = useCreateTasbihSession()
   const increment = useIncrementTasbih()
 
-  const activeSession = sessions?.find(s => s.id === activeSessionId)
+  const displayDhikr = dhikrList && dhikrList.length > 0 ? dhikrList : FALLBACK_DHIKR
 
-  async function handleSelectDhikr(dhikrId: number) {
-    const session = await createSession.mutateAsync({ dhikr_id: dhikrId, target: 33 })
-    setActiveSessionId(session.id)
-    setLocalCount(0)
+  const backendSession = sessions?.find(s => s.id === backendSessionId)
+
+  const displayCount = backendSession ? Math.max(localSession?.count ?? 0, backendSession.count) : (localSession?.count ?? 0)
+  const target = localSession?.target ?? 33
+  const progress = Math.min(displayCount / target, 1)
+  const completed = displayCount >= target
+
+  async function handleSelectDhikr(dhikr: TasbihDhikr) {
+    const session: LocalSession = { dhikr, count: 0, target: dhikr.default_target }
+    setLocalSession(session)
+    try {
+      const created = await createSession.mutateAsync({ dhikr_id: dhikr.id, target: dhikr.default_target })
+      setBackendSessionId(created.id)
+    } catch {
+      // offline fallback — use local counting only
+    }
   }
 
   async function handleTap() {
-    if (!activeSession) return
-    setLocalCount(c => c + 1)
-    await increment.mutateAsync({ sessionId: activeSession.id, amount: 1 })
+    if (!localSession) return
+    const newCount = localSession.count + 1
+    setLocalSession(s => s ? { ...s, count: newCount } : s)
+    if (backendSessionId) {
+      try {
+        await increment.mutateAsync({ sessionId: backendSessionId, amount: 1 })
+      } catch {
+        // ignore — count is tracked locally
+      }
+    }
   }
 
   function handleReset() {
-    setActiveSessionId(null)
-    setLocalCount(0)
+    setLocalSession(null)
+    setBackendSessionId(null)
   }
-
-  const displayCount = activeSession
-    ? Math.max(localCount, activeSession.count)
-    : localCount
-
-  const target = activeSession?.target ?? 33
-  const progress = Math.min(displayCount / target, 1)
-  const completed = displayCount >= target
 
   if (dhikrLoading) {
     return (
@@ -58,36 +84,37 @@ export function Tasbih() {
     <div className="px-4 py-6">
       <h1 className="text-text-primary font-semibold text-xl mb-6">Tasbih</h1>
 
-      {!activeSessionId ? (
+      {!localSession ? (
         <div className="space-y-3">
           <p className="text-text-muted text-sm mb-4">Zikr tanlang:</p>
-          {dhikrList?.map((dhikr) => (
+          {displayDhikr.map((dhikr) => (
             <motion.button
               key={dhikr.id}
               whileTap={{ scale: 0.97 }}
-              onClick={() => handleSelectDhikr(dhikr.id)}
+              onClick={() => handleSelectDhikr(dhikr)}
               className="w-full flex items-center justify-between px-4 py-4 bg-bg-card border border-border-subtle rounded-xl hover:border-accent/30 transition-all"
             >
               <div className="text-left">
                 <p className="text-text-primary font-medium text-sm">{dhikr.text_uz}</p>
                 <p className="text-text-muted text-xs mt-0.5 font-arabic">{dhikr.text_transliteration}</p>
               </div>
-              <p className="font-arabic text-text-arabic text-lg">{dhikr.text_arabic}</p>
+              <p className="font-arabic text-text-arabic text-xl">{dhikr.text_arabic}</p>
             </motion.button>
           ))}
         </div>
       ) : (
         <div className="flex flex-col items-center gap-8">
-          {activeSession && (
-            <div className="text-center">
-              <p className="font-arabic text-text-arabic text-2xl leading-relaxed" dir="rtl">
-                {activeSession.dhikr.text_arabic}
-              </p>
-              <p className="text-text-secondary text-sm mt-2">
-                {activeSession.dhikr.text_uz}
-              </p>
-            </div>
-          )}
+          <div className="text-center">
+            <p className="font-arabic text-text-arabic text-3xl leading-relaxed" dir="rtl">
+              {localSession.dhikr.text_arabic}
+            </p>
+            <p className="text-text-secondary text-sm mt-2">
+              {localSession.dhikr.text_uz}
+            </p>
+            <p className="text-text-muted text-xs mt-1">
+              {localSession.dhikr.text_transliteration}
+            </p>
+          </div>
 
           <div className="relative w-52 h-52">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">

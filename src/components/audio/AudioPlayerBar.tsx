@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion'
 import { Play, Pause, Square, Volume2, VolumeX, SkipForward, Repeat } from 'lucide-react'
 import { useAudioStore } from '@/stores/audioStore'
 import { useAudioPlayer } from '@/hooks/useAudioPlayer'
@@ -15,7 +14,7 @@ export function AudioPlayerBar() {
   const {
     isPlaying, isLoading, currentSurah, currentVerse,
     progress, duration, volume, isMuted, mode,
-    pause, resume, stop, setVolume, toggleMute, setMode,
+    pause, resume, stop, setVolume, toggleMute, setMode, nextVerse,
   } = useAudioStore()
 
   const { seek } = useAudioPlayer()
@@ -23,13 +22,7 @@ export function AudioPlayerBar() {
   const progressPct = duration > 0 ? (progress / duration) * 100 : 0
 
   return (
-    <motion.div
-      initial={{ y: 80 }}
-      animate={{ y: 0 }}
-      exit={{ y: 80 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="fixed bottom-16 left-0 right-0 z-30 safe-bottom"
-    >
+    <div className="fixed bottom-16 left-0 right-0 z-30 safe-bottom">
       <div className="mx-2 mb-1 bg-bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
         <div
           className="h-0.5 bg-bg-elevated cursor-pointer"
@@ -39,8 +32,8 @@ export function AudioPlayerBar() {
             seek(ratio * duration)
           }}
         >
-          <motion.div
-            className="h-full bg-accent"
+          <div
+            className="h-full bg-accent transition-all duration-100"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -83,6 +76,15 @@ export function AudioPlayerBar() {
               )}
             </button>
 
+            {currentVerse !== null && (
+              <button
+                onClick={nextVerse}
+                className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
+              >
+                <SkipForward size={15} />
+              </button>
+            )}
+
             <button
               onClick={stop}
               className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
@@ -110,6 +112,6 @@ export function AudioPlayerBar() {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

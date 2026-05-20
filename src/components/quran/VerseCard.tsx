@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, BookOpen, Volume2 } from 'lucide-react'
 import { ArabicText } from './ArabicText'
@@ -10,16 +10,28 @@ import type { Verse } from '@/types/quran'
 interface VerseCardProps {
   verse: Verse
   surahNumber: number
+  totalVerses?: number
   isActive?: boolean
   onVisible?: (verse: Verse) => void
 }
 
-export function VerseCard({ verse, surahNumber, isActive, onVisible }: VerseCardProps) {
+export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVisible }: VerseCardProps) {
   const [showActions, setShowActions] = useState(false)
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>()
   const { openTafsir, arabicOnly, showTransliteration, zenMode, language } = useQuranStore()
   const { play, currentVerse, currentSurah } = useAudioStore()
   const cardRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!onVisible || !cardRef.current) return
+    const el = cardRef.current
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) onVisible(verse) },
+      { threshold: 0.5 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [verse, onVisible])
 
   const isPlaying = currentSurah === surahNumber && currentVerse === verse.number
   const translation = verse.translations?.find(t => t.language === language)?.text
@@ -37,8 +49,8 @@ export function VerseCard({ verse, surahNumber, isActive, onVisible }: VerseCard
   }
 
   const handlePlayVerse = () => {
-    const url = `https://cdn.islamic.network/quran/audio/128/en.alafasy/${surahNumber.toString().padStart(3, '0')}${verse.number.toString().padStart(3, '0')}.mp3`
-    play(surahNumber, verse.number, url)
+    const url = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${surahNumber.toString().padStart(3, '0')}${verse.number.toString().padStart(3, '0')}.mp3`
+    play(surahNumber, verse.number, url, totalVerses)
   }
 
   if (zenMode) {
