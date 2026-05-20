@@ -9,12 +9,18 @@ export interface WordState {
   status: WordStatus
 }
 
+export interface LastError {
+  recognized: string
+  expected: string
+}
+
 interface RecitationState {
   sessionStatus: SessionStatus
   words: WordState[]
   currentIndex: number
   correctCount: number
   errorCount: number
+  lastError: LastError | null
   startSession: (ayahText: string) => void
   processWord: (recognized: string) => void
   pause: () => void
@@ -28,6 +34,7 @@ export const useRecitationStore = create<RecitationState>((set, get) => ({
   currentIndex: 0,
   correctCount: 0,
   errorCount: 0,
+  lastError: null,
 
   startSession: (ayahText) => {
     const wordList = splitWords(ayahText)
@@ -43,34 +50,28 @@ export const useRecitationStore = create<RecitationState>((set, get) => ({
     if (!words.length) return
 
     const current = words[currentIndex]
-    if (!current || current.status === 'wrong') return
+    if (!current) return
 
     const newWords = [...words]
+    const wasWrong = current.status === 'wrong'
 
     if (wordsMatch(recognized, current.text)) {
       newWords[currentIndex] = { ...current, status: 'correct' }
       const next = currentIndex + 1
       if (next >= words.length) {
-        set({ words: newWords, currentIndex: next, correctCount: correctCount + 1, sessionStatus: 'finished' })
+        set({ words: newWords, currentIndex: next, correctCount: correctCount + 1, sessionStatus: 'finished', lastError: null })
       } else {
         newWords[next] = { ...newWords[next], status: 'current' }
-        set({ words: newWords, currentIndex: next, correctCount: correctCount + 1 })
+        set({ words: newWords, currentIndex: next, correctCount: correctCount + 1, lastError: null })
       }
     } else {
       newWords[currentIndex] = { ...current, status: 'wrong' }
-      set({ words: newWords, errorCount: errorCount + 1 })
-      setTimeout(() => {
-        const { words: w, currentIndex: ci } = get()
-        if (w[ci]?.status === 'wrong') {
-          const updated = [...w]
-          updated[ci] = { ...updated[ci], status: 'current' }
-          set({ words: updated })
-        }
-      }, 1500)
+      // wasWrong bo'lsa errorCount oshmasin
+      set({ words: newWords, errorCount: wasWrong ? errorCount : errorCount + 1, lastError: { recognized, expected: current.text } })
     }
   },
 
   pause: () => set({ sessionStatus: 'paused' }),
   resume: () => set({ sessionStatus: 'listening' }),
-  reset: () => set({ sessionStatus: 'idle', words: [], currentIndex: 0, correctCount: 0, errorCount: 0 }),
+  reset: () => set({ sessionStatus: 'idle', words: [], currentIndex: 0, correctCount: 0, errorCount: 0, lastError: null }),
 }))

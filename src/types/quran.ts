@@ -17,6 +17,7 @@ export interface Tafsir {
 export interface Verse {
   id: number
   number: number
+  surah_number?: number
   text_arabic: string
   text_transliteration: string
   page_number: number

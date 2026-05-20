@@ -17,6 +17,7 @@ export function useRecitation() {
   const [isListening, setIsListening] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const recRef = useRef<ISpeechRecognition | null>(null)
+  const processedWordsRef = useRef(0)
   const { sessionStatus, processWord } = useRecitationStore()
 
   const isSupported =
@@ -40,16 +41,28 @@ export function useRecitation() {
     const rec = new SR()
     rec.lang = 'ar-SA'
     rec.continuous = true
-    rec.interimResults = false
+    rec.interimResults = true
     rec.maxAlternatives = 1
 
     rec.onresult = (e) => {
+      let fullTranscript = ''
+      let hasFinal = false
+
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          const transcript = e.results[i][0].transcript.trim()
-          transcript.split(/\s+/).filter(Boolean).forEach(w => processWord(w))
-        }
+        fullTranscript += e.results[i][0].transcript
+        if (e.results[i].isFinal) hasFinal = true
       }
+
+      const recognized = fullTranscript.trim().split(/\s+/).filter(Boolean)
+      // Process word N as soon as word N+1 appears (user moved on), or all on final
+      const processUpTo = hasFinal ? recognized.length : recognized.length - 1
+
+      for (let i = processedWordsRef.current; i < processUpTo; i++) {
+        processWord(recognized[i])
+        processedWordsRef.current++
+      }
+
+      if (hasFinal) processedWordsRef.current = 0
     }
 
     rec.onerror = (e) => {
@@ -66,6 +79,7 @@ export function useRecitation() {
       }
     }
 
+    processedWordsRef.current = 0
     recRef.current = rec
     rec.start()
     setIsListening(true)

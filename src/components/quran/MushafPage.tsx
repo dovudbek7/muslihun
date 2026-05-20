@@ -11,6 +11,7 @@ interface Props {
   pageNumber: number
   side?: 'right' | 'left' | 'single'
   allSurahs?: Surah[]
+  onVerseClick?: (verse: Verse) => void
 }
 
 const CORNER_POS = {
@@ -26,7 +27,7 @@ const BORDER_RADIUS = {
   single: 'rounded-xl',
 } as const
 
-export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allSurahs }: Props) {
+export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allSurahs, onVerseClick }: Props) {
   const startingSurahs = useMemo(
     () => allSurahs?.filter(s => s.page_start === pageNumber) ?? [],
     [allSurahs, pageNumber]
@@ -106,14 +107,18 @@ export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allS
       )}
 
       {/* Arabic text */}
-      <div className="flex-1 px-4 pb-1 overflow-hidden">
+      <div className="flex-1 px-4 pb-1 overflow-y-auto">
         <p
           className="font-arabic text-right"
           style={{ fontSize, lineHeight: '2.6', color: 'var(--mushaf-text, var(--text-arabic))' }}
           dir="rtl"
         >
           {verses.map(verse => (
-            <span key={verse.id}>
+            <span
+              key={verse.id}
+              className="cursor-pointer hover:bg-emerald-800/10 active:bg-emerald-800/20 rounded transition-colors"
+              onClick={() => onVerseClick?.(verse)}
+            >
               {verse.text_arabic}
               {' '}
               <span

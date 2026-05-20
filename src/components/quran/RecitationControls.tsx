@@ -1,13 +1,14 @@
 import { Mic, RotateCcw, Pause, Play } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/components/ui/cn'
-import type { SessionStatus } from '@/stores/recitationStore'
+import type { SessionStatus, LastError } from '@/stores/recitationStore'
 
 interface RecitationControlsProps {
   status: SessionStatus
   isListening: boolean
   isSupported: boolean
   error: string | null
+  lastError: LastError | null
   correctCount: number
   errorCount: number
   totalWords: number
@@ -18,7 +19,7 @@ interface RecitationControlsProps {
 }
 
 export function RecitationControls({
-  status, isListening, isSupported, error,
+  status, isListening, isSupported, error, lastError,
   correctCount, errorCount, totalWords,
   onStart, onPause, onResume, onReset,
 }: RecitationControlsProps) {
@@ -107,6 +108,23 @@ export function RecitationControls({
       {error && (
         <p className="text-error-red text-sm text-center">{error}</p>
       )}
+
+      <AnimatePresence>
+        {lastError && (
+          <motion.div
+            key={lastError.recognized}
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="text-center text-sm space-y-0.5"
+          >
+            <p className="text-error-red font-arabic text-base" dir="rtl">{lastError.recognized}</p>
+            <p className="text-text-muted text-xs">o'rniga:</p>
+            <p className="text-accent font-arabic text-base" dir="rtl">{lastError.expected}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!isSupported && status === 'idle' && (
         <p className="text-text-muted text-xs text-center">

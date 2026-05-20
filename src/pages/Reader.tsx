@@ -1,13 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Settings2, BookOpenCheck, Play, Maximize2, X } from 'lucide-react'
+import { Settings2, BookOpenCheck, Play, Maximize2, X, Mic } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useAudioStore } from '@/stores/audioStore'
 import { useSurah, usePage, useSurahs } from '@/api/quran'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { MushafView } from '@/components/quran/MushafView'
+import { RecitationSheet } from '@/components/quran/RecitationSheet'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/components/ui/cn'
 import type { Verse } from '@/types/quran'
@@ -29,6 +30,7 @@ export function Reader() {
   } = useQuranStore()
   const { openDrawer } = useUIStore()
   const { play } = useAudioStore()
+  const [recitationVerse, setRecitationVerse] = useState<Verse | null>(null)
 
   const activeSurah = surahNumber ? parseInt(surahNumber) : currentSurah
   const activePage = pageNumber ? parseInt(pageNumber) : currentPage
@@ -193,6 +195,7 @@ export function Reader() {
                 onVisible={(v) => {
                   if (currentSurah === activeSurah) setCurrentVerse(v.number)
                 }}
+                onRecite={() => setRecitationVerse(verse)}
               />
             ))}
           </div>
@@ -205,6 +208,28 @@ export function Reader() {
           <p className="text-text-muted/50 text-xs">Backend serveriga ulanishni tekshiring</p>
         </div>
       )}
+
+      {/* Floating mic button — scroll modeda */}
+      {readingMode === 'scroll' && !zenMode && verses.length > 0 && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            const activeVerse = verses.find(v => v.number === currentVerse) ?? verses[0]
+            setRecitationVerse(activeVerse)
+          }}
+          className="fixed bottom-24 right-5 z-30 w-14 h-14 rounded-full bg-accent shadow-lg shadow-accent/30 flex items-center justify-center text-bg-primary"
+          title="Qiroat mashqi"
+        >
+          <Mic size={22} />
+        </motion.button>
+      )}
+
+      <RecitationSheet
+        verse={recitationVerse}
+        onClose={() => setRecitationVerse(null)}
+      />
     </div>
   )
 }

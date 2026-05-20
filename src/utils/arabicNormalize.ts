@@ -7,7 +7,8 @@ export function stripTashkeel(text: string): string {
 }
 
 export function normalizeArabic(text: string): string {
-  return stripTashkeel(text)
+  // U+0670 (superscript alef) signals madd; ASR returns full alef ا instead
+  return stripTashkeel(text.replace(/ٰ/g, 'ا'))
     .replace(/[أإآٱ]/g, 'ا')
     .replace(/ة/g, 'ه')
     .replace(/ى/g, 'ي')

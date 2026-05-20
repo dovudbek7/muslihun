@@ -29,7 +29,7 @@ export function Recitation() {
   const verseIdxRef = useRef(verseIdx)
   verseIdxRef.current = verseIdx
 
-  const { sessionStatus, words, correctCount, errorCount, startSession, pause, resume, reset } = useRecitationStore()
+  const { sessionStatus, words, correctCount, errorCount, lastError, startSession, pause, resume, reset } = useRecitationStore()
   const { isListening, isSupported, error, start, stop } = useRecitation()
 
   const verses = surah?.verses ?? []
@@ -220,6 +220,7 @@ export function Recitation() {
               isListening={isListening}
               isSupported={isSupported}
               error={error}
+              lastError={lastError}
               correctCount={correctCount}
               errorCount={errorCount}
               totalWords={totalWords}
@@ -281,6 +282,7 @@ export function Recitation() {
               isListening={isListening}
               isSupported={isSupported}
               error={error}
+              lastError={lastError}
               correctCount={correctCount}
               errorCount={errorCount}
               totalWords={totalWords}
