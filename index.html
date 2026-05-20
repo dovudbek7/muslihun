@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ar" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#120F0E" />
+    <meta name="description" content="Muslihun — Premium Quran Ecosystem" />
+    <title>Muslihun | مسلحون</title>
+    <style>
+      /* Critical: prevent FOUT for Arabic font */
+      @font-face {
+        font-family: 'Uthmanic Hafs';
+        src: url('/fonts/UthmanicHafs_V22.woff2') format('woff2'),
+             url('/fonts/UthmanicHafs_V22.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+        font-display: block;
+      }
+      html { background-color: #120F0E; }
+      body { margin: 0; background-color: #120F0E; }
+      #root { min-height: 100dvh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

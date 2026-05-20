@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Uthmanic Hafs';
+  src: url('/fonts/UthmanicHafs_V22.woff2') format('woff2'),
+       url('/fonts/UthmanicHafs_V22.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: #120F0E;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg-primary text-text-primary;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: rgba(212, 175, 55, 0.25);
+    color: #F5F0E8;
+  }
+
+  ::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.2);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.4);
+  }
+}
+
+@layer components {
+  .arabic-text {
+    font-family: 'Uthmanic Hafs', 'KFGQPC Uthmanic Script HAFS', 'Scheherazade New', serif;
+    direction: rtl;
+    text-align: right;
+    line-height: 2;
+    word-spacing: 0.15em;
+  }
+
+  .card {
+    @apply bg-bg-card border border-border-subtle rounded-xl;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+  }
+
+  .card-elevated {
+    @apply bg-bg-elevated border border-border rounded-xl;
+    box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .btn-primary {
+    @apply bg-accent text-bg-primary font-semibold rounded-lg px-5 py-2.5
+           transition-all duration-200 active:scale-95;
+  }
+  .btn-primary:hover {
+    @apply bg-accent-light;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+
+  .btn-ghost {
+    @apply text-text-secondary hover:text-text-primary hover:bg-bg-elevated
+           rounded-lg px-4 py-2 transition-all duration-200;
+  }
+
+  .input-field {
+    @apply w-full bg-bg-elevated border border-border-subtle rounded-lg
+           px-4 py-3 text-text-primary placeholder-text-muted
+           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/20
+           transition-all duration-200;
+  }
+
+  .gold-text {
+    background: linear-gradient(135deg, #D4AF37 0%, #E8CA5A 50%, #D4AF37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .verse-highlight {
+    @apply bg-accent/10 border-l-2 border-accent rounded-r-lg;
+  }
+
+  .ripple-container {
+    @apply relative overflow-hidden;
+  }
+  .ripple-container::after {
+    content: '';
+    @apply absolute inset-0 rounded-full bg-accent/20 scale-0 opacity-0;
+    animation: ripple 0.6s ease-out;
+  }
+
+  .zen-overlay {
+    @apply fixed inset-0 bg-bg-primary z-50 flex items-center justify-center;
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.03) 50%,
+      rgba(255,255,255,0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  .text-balance { text-wrap: balance; }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
