@@ -5,6 +5,7 @@ import { ROUTES } from '@/constants/routes'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
 
 const Home     = lazy(() => import('@/pages/Home').then(m => ({ default: m.Home })))
+const Surahs   = lazy(() => import('@/pages/Surahs').then(m => ({ default: m.Surahs })))
 const Reader   = lazy(() => import('@/pages/Reader').then(m => ({ default: m.Reader })))
 const Search   = lazy(() => import('@/pages/Search').then(m => ({ default: m.Search })))
 const Hifz     = lazy(() => import('@/pages/Hifz').then(m => ({ default: m.Hifz })))
@@ -29,6 +30,7 @@ export default function App() {
         <Route path={ROUTES.REGISTER} element={<Register />} />
 
         <Route path={ROUTES.HOME} element={<Layout><Home /></Layout>} />
+        <Route path={ROUTES.SURAHS} element={<Layout><Surahs /></Layout>} />
         <Route path={ROUTES.READER} element={<Layout><Reader /></Layout>} />
         <Route path={ROUTES.READER_SURAH} element={<Layout><Reader /></Layout>} />
         <Route path={ROUTES.READER_PAGE} element={<Layout><Reader /></Layout>} />

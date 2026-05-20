@@ -118,7 +118,7 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
 
         <div className="flex-1 min-w-0">
           <div className="flex justify-end mb-3">
-            <ArabicText text={verse.text_arabic} isActive={isActive || isPlaying} />
+            <ArabicText text={verse.text_arabic} isActive={isPlaying} />
           </div>
 
           {showTransliteration && verse.text_transliteration && (

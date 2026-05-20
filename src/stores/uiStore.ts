@@ -30,7 +30,7 @@ export const useUIStore = create<UIStore>()(
       isSearchOpen: false,
       isTafsirOpen: false,
       notification: null,
-      theme: 'dark',
+      theme: 'light',
 
       openDrawer: (drawer) => set({ activeDrawer: drawer }),
       closeDrawer: () => set({ activeDrawer: null }),

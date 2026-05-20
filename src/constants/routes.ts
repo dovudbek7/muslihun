@@ -1,5 +1,6 @@
 export const ROUTES = {
   HOME: '/',
+  SURAHS: '/surahs',
   READER: '/read',
   READER_SURAH: '/read/surah/:surahNumber',
   READER_PAGE: '/read/page/:pageNumber',

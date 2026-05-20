@@ -88,8 +88,8 @@ export function MushafView({ verses, fontSize, page, surah }: MushafViewProps) {
         {surah && surah.number !== 1 && surah.number !== 9 && (
           <div className="flex justify-center pb-4 px-6">
             <p
-              className="font-arabic text-text-arabic text-center leading-loose"
-              style={{ fontSize: fontSize + 2 }}
+              className="font-arabic text-center leading-loose"
+              style={{ fontSize: fontSize + 2, color: 'var(--mushaf-text, var(--text-arabic))' }}
               dir="rtl"
             >
               بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
@@ -100,8 +100,8 @@ export function MushafView({ verses, fontSize, page, surah }: MushafViewProps) {
         {/* Flowing Arabic text */}
         <div className="px-4 pb-6">
           <p
-            className="font-arabic text-text-arabic leading-loose text-right"
-            style={{ fontSize, lineHeight: '2.6' }}
+            className="font-arabic leading-loose text-right"
+            style={{ fontSize, lineHeight: '2.6', color: 'var(--mushaf-text, var(--text-arabic))' }}
             dir="rtl"
           >
             {verses.map((verse) => (

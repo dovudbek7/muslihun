@@ -5,7 +5,7 @@ import { Settings2, BookOpenCheck, Play } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useAudioStore } from '@/stores/audioStore'
-import { useSurah, usePage } from '@/api/quran'
+import { useSurah, usePage, useSurahs } from '@/api/quran'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { MushafView } from '@/components/quran/MushafView'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
@@ -24,7 +24,7 @@ export function Reader() {
   const {
     currentSurah, currentVerse, currentPage, language,
     readingMode, zenMode, fontSize,
-    setCurrentSurah, setCurrentVerse, setCurrentPage,
+    setCurrentSurah, setCurrentVerse, setCurrentPage, setCurrentJuz,
     navigateTo,
   } = useQuranStore()
   const { openDrawer } = useUIStore()
@@ -35,11 +35,28 @@ export function Reader() {
 
   const { data: surah, isLoading: surahLoading } = useSurah(activeSurah, language)
   const { data: pageData, isLoading: pageLoading } = usePage(activePage, language)
+  const { data: allSurahs } = useSurahs(language)
+
+  // Derive surah & juz from page data (mushaf mode)
+  const pageSurah = pageNumber && allSurahs && pageData
+    ? allSurahs
+        .filter(s => s.page_start <= activePage)
+        .sort((a, b) => b.page_start - a.page_start)[0]
+    : null
+
+  const displaySurah = pageSurah ?? surah
 
   useEffect(() => {
     if (surahNumber) setCurrentSurah(parseInt(surahNumber))
     if (pageNumber) setCurrentPage(parseInt(pageNumber))
   }, [surahNumber, pageNumber])
+
+  useEffect(() => {
+    if (!pageData?.verses?.length) return
+    const firstVerse = pageData.verses[0]
+    if (firstVerse.juz_number) setCurrentJuz(firstVerse.juz_number)
+    if (pageSurah) setCurrentSurah(pageSurah.number)
+  }, [pageData, pageSurah])
 
   useEffect(() => {
     const key = `reader-scroll-${surahNumber ?? 'default'}`
@@ -112,7 +129,7 @@ export function Reader() {
       )}
 
       {readingMode === 'mushaf' && verses.length > 0 ? (
-        <MushafView verses={verses} fontSize={fontSize} page={activePage} surah={surah} />
+        <MushafView verses={verses} fontSize={fontSize} page={activePage} surah={displaySurah} />
       ) : (
         <>
           {readingMode === 'scroll' && surah && verses.length > 0 && surah.number !== 1 && surah.number !== 9 && (

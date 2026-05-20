@@ -1,16 +1,15 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  User, Flame, Trophy, Settings, LogOut, Moon, Sun,
-  Languages, Type, BookOpen, Mic, ChevronRight,
+  User, Flame, Trophy, LogOut, Moon, Sun, Monitor,
+  Type, BookOpen,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import { useQuranStore } from '@/stores/quranStore'
+import { useUIStore, type Theme } from '@/stores/uiStore'
 import { useProfile, useLogout, useUpdatePreferences } from '@/api/auth'
 import { useStreak, useMyAchievements } from '@/api/gamification'
-import { ROUTES, buildRoute } from '@/constants/routes'
-import { LANGUAGE_LABELS } from '@/constants/quran'
+import { ROUTES } from '@/constants/routes'
 import { cn } from '@/components/ui/cn'
 import type { Language } from '@/types/quran'
 
@@ -22,13 +21,20 @@ const LANGUAGES: { value: Language; label: string }[] = [
   { value: 'tr', label: 'Türkçe' },
 ]
 
+const THEMES: { id: Theme; label: string; icon: React.ReactNode }[] = [
+  { id: 'light', label: 'Oq', icon: <Sun size={16} /> },
+  { id: 'dark', label: 'Qora', icon: <Moon size={16} /> },
+  { id: 'gray', label: 'Kulrang', icon: <Monitor size={16} /> },
+]
+
 export function Profile() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const {
-    language, fontSize, tajweedMode, arabicOnly, showTransliteration,
-    setLanguage, setFontSize, toggleTajweedMode, toggleArabicOnly, toggleTransliteration,
+    language, tajweedMode, arabicOnly, showTransliteration,
+    setLanguage, toggleTajweedMode, toggleArabicOnly, toggleTransliteration,
   } = useQuranStore()
+  const { theme, setTheme } = useUIStore()
 
   const { data: user } = useProfile()
   const { data: streak } = useStreak()
@@ -92,10 +98,31 @@ export function Profile() {
         </div>
       )}
 
+      <Section title="Ko'rinish">
+        <div className="grid grid-cols-3 gap-2">
+          {THEMES.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTheme(t.id)}
+              className={cn(
+                'flex flex-col items-center gap-2 py-3 rounded-xl border-2 transition-all',
+                'bg-bg-elevated',
+                theme === t.id
+                  ? 'border-accent text-accent'
+                  : 'border-transparent text-text-muted hover:text-text-primary'
+              )}
+            >
+              {t.icon}
+              <span className="text-xs font-medium">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </Section>
+
       <Section title="O'qish sozlamalari">
         <div className="space-y-px">
           <ToggleRow
-            icon={<Moon size={15} />}
+            icon={<BookOpen size={15} />}
             label="Faqat arabcha"
             value={arabicOnly}
             onToggle={toggleArabicOnly}
@@ -111,22 +138,6 @@ export function Profile() {
             label="Tajweed ranglari"
             value={tajweedMode}
             onToggle={toggleTajweedMode}
-          />
-        </div>
-
-        <div className="mt-3 px-4 py-3 bg-bg-elevated rounded-xl">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-text-secondary text-sm">Shrift o'lchami</span>
-            <span className="text-accent text-sm font-medium">{fontSize}px</span>
-          </div>
-          <input
-            type="range"
-            min={14}
-            max={48}
-            step={2}
-            value={fontSize}
-            onChange={(e) => setFontSize(parseInt(e.target.value))}
-            className="w-full accent-accent"
           />
         </div>
       </Section>
