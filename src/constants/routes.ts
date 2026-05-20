@@ -10,6 +10,7 @@ export const ROUTES = {
   HIFZ_SESSION: '/hifz/session/:surahNumber',
   HIFZ_ERRORS: '/hifz/errors',
   TASBIH: '/tasbih',
+  RECITE: '/recite/:surahId',
   PROFILE: '/profile',
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
@@ -22,4 +23,5 @@ export const buildRoute = {
   page: (n: number) => `/read/page/${n}`,
   juz: (n: number) => `/read/juz/${n}`,
   hifzSession: (surahNumber: number) => `/hifz/session/${surahNumber}`,
+  recite: (surahId: number) => `/recite/${surahId}`,
 }

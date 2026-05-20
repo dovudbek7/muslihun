@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, Play } from 'lucide-react'
+import { ChevronLeft, Play, Mic } from 'lucide-react'
 import { useSurahs } from '@/api/quran'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAudioStore } from '@/stores/audioStore'
@@ -62,6 +62,12 @@ export function Surahs() {
               className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors flex-shrink-0"
             >
               <Play size={14} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate(buildRoute.recite(surah.number)) }}
+              className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors flex-shrink-0"
+            >
+              <Mic size={14} />
             </button>
           </motion.div>
         ))}

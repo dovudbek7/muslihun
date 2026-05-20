@@ -10,7 +10,8 @@ const Reader   = lazy(() => import('@/pages/Reader').then(m => ({ default: m.Rea
 const Search   = lazy(() => import('@/pages/Search').then(m => ({ default: m.Search })))
 const Hifz     = lazy(() => import('@/pages/Hifz').then(m => ({ default: m.Hifz })))
 const Tasbih   = lazy(() => import('@/pages/Tasbih').then(m => ({ default: m.Tasbih })))
-const Profile  = lazy(() => import('@/pages/Profile').then(m => ({ default: m.Profile })))
+const Profile    = lazy(() => import('@/pages/Profile').then(m => ({ default: m.Profile })))
+const Recitation = lazy(() => import('@/pages/Recitation').then(m => ({ default: m.Recitation })))
 const Login    = lazy(() => import('@/pages/auth/Login').then(m => ({ default: m.Login })))
 const Register = lazy(() => import('@/pages/auth/Register').then(m => ({ default: m.Register })))
 
@@ -40,6 +41,7 @@ export default function App() {
         <Route path={ROUTES.HIFZ_SESSION} element={<Layout><Hifz /></Layout>} />
         <Route path={ROUTES.TASBIH} element={<Layout><Tasbih /></Layout>} />
         <Route path={ROUTES.PROFILE} element={<Layout><Profile /></Layout>} />
+        <Route path={ROUTES.RECITE} element={<Recitation />} />
         <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
       </Routes>
     </Suspense>

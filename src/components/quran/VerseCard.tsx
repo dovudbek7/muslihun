@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, BookOpen, Bookmark } from 'lucide-react'
+import { Play, BookOpen, Bookmark, Mic } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { ArabicText } from './ArabicText'
 import { cn } from '@/components/ui/cn'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAudioStore } from '@/stores/audioStore'
 import { useToggleBookmark, useBookmarkIds } from '@/api/quran'
+import { buildRoute } from '@/constants/routes'
 import type { Verse } from '@/types/quran'
 
 interface VerseCardProps {
@@ -19,6 +21,7 @@ interface VerseCardProps {
 export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVisible }: VerseCardProps) {
   const [showActions, setShowActions] = useState(false)
   const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>()
+  const navigate = useNavigate()
   const { openTafsir, arabicOnly, showTransliteration, zenMode, language, reciterIdentifier } = useQuranStore()
   const { play, currentVerse, currentSurah } = useAudioStore()
   const { data: bookmarkIds } = useBookmarkIds()
@@ -164,6 +167,11 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
               label={isBookmarked ? "Saqlangan" : "Saqlash"}
               onClick={handleBookmark}
               active={isBookmarked}
+            />
+            <ActionBtn
+              icon={<Mic size={14} />}
+              label="Qiroat"
+              onClick={() => navigate(buildRoute.recite(surahNumber))}
             />
           </motion.div>
         )}

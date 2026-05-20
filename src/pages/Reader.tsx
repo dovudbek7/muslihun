@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Settings2, BookOpenCheck, Play } from 'lucide-react'
+import { Settings2, BookOpenCheck, Play, Maximize2, X } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useAudioStore } from '@/stores/audioStore'
@@ -15,7 +15,7 @@ import type { Verse } from '@/types/quran'
 const CDN_RECITER = 'ar.alafasy'
 
 export function Reader() {
-  const { surahNumber, pageNumber, juzNumber } = useParams<{
+  const { surahNumber, pageNumber } = useParams<{
     surahNumber?: string
     pageNumber?: string
     juzNumber?: string
@@ -23,9 +23,9 @@ export function Reader() {
 
   const {
     currentSurah, currentVerse, currentPage, language,
-    readingMode, zenMode, fontSize,
+    readingMode, zenMode, fontSize, mushafFullscreen,
     setCurrentSurah, setCurrentVerse, setCurrentPage, setCurrentJuz,
-    navigateTo,
+    toggleMushafFullscreen,
   } = useQuranStore()
   const { openDrawer } = useUIStore()
   const { play } = useAudioStore()
@@ -37,7 +37,6 @@ export function Reader() {
   const { data: pageData, isLoading: pageLoading } = usePage(activePage, language)
   const { data: allSurahs } = useSurahs(language)
 
-  // Derive surah & juz from page data (mushaf mode)
   const pageSurah = pageNumber && allSurahs && pageData
     ? allSurahs
         .filter(s => s.page_start <= activePage)
@@ -67,6 +66,16 @@ export function Reader() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [surahNumber])
 
+  // Close fullscreen on Escape
+  useEffect(() => {
+    if (!mushafFullscreen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') toggleMushafFullscreen()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mushafFullscreen, toggleMushafFullscreen])
+
   const isLoading = readingMode === 'scroll' ? surahLoading : pageLoading
 
   const verses: Verse[] = readingMode === 'scroll'
@@ -88,6 +97,26 @@ export function Reader() {
 
   return (
     <div className="relative">
+      {/* Fullscreen mushaf overlay */}
+      {readingMode === 'mushaf' && mushafFullscreen && (
+        <div className="fixed inset-0 z-50 bg-bg-primary flex flex-col">
+          <button
+            onClick={toggleMushafFullscreen}
+            className="absolute top-3 left-3 z-10 p-2 rounded-xl text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
+            title="Yopish (Esc)"
+          >
+            <X size={20} />
+          </button>
+          <MushafView
+            verses={verses}
+            fontSize={fontSize}
+            page={activePage}
+            surah={displaySurah}
+            isFullscreen
+          />
+        </div>
+      )}
+
       {!zenMode && (
         <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle sticky top-14 z-20 bg-bg-primary/95 backdrop-blur-md">
           <div>
@@ -116,6 +145,15 @@ export function Reader() {
                 title="Surani tinglash"
               >
                 <Play size={16} />
+              </button>
+            )}
+            {readingMode === 'mushaf' && (
+              <button
+                onClick={toggleMushafFullscreen}
+                className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
+                title="Katta ekran"
+              >
+                <Maximize2 size={16} />
               </button>
             )}
             <button

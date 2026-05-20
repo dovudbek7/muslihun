@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { BookOpen, Search, Brain, Hash, User } from 'lucide-react'
+import { BookOpen, Search, Brain, Mic, User } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { cn } from '@/components/ui/cn'
 
@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { to: '/', icon: BookOpen, label: 'Qur\'on' },
   { to: '/search', icon: Search, label: 'Qidiruv' },
   { to: '/hifz', icon: Brain, label: 'Hifz' },
-  { to: '/tasbih', icon: Hash, label: 'Tasbih' },
+  { to: '/recite/1', icon: Mic, label: 'Qiroat' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]
 

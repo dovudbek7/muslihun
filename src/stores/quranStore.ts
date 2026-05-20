@@ -17,6 +17,7 @@ interface QuranState {
   showTransliteration: boolean
   reciterIdentifier: ReciterId
   activeTafsirVerse: { surah: number; verse: number } | null
+  mushafFullscreen: boolean
 
   setCurrentSurah: (n: number) => void
   setCurrentVerse: (n: number) => void
@@ -33,6 +34,7 @@ interface QuranState {
   openTafsir: (surah: number, verse: number) => void
   closeTafsir: () => void
   navigateTo: (surah: number, verse?: number, page?: number) => void
+  toggleMushafFullscreen: () => void
 }
 
 export const useQuranStore = create<QuranState>()(
@@ -51,6 +53,7 @@ export const useQuranStore = create<QuranState>()(
       showTransliteration: false,
       reciterIdentifier: 'ar.alafasy',
       activeTafsirVerse: null,
+      mushafFullscreen: false,
 
       setCurrentSurah: (n) => set({ currentSurah: n }),
       setCurrentVerse: (n) => set({ currentVerse: n }),
@@ -66,6 +69,7 @@ export const useQuranStore = create<QuranState>()(
       setReciterIdentifier: (id) => set({ reciterIdentifier: id }),
       openTafsir: (surah, verse) => set({ activeTafsirVerse: { surah, verse } }),
       closeTafsir: () => set({ activeTafsirVerse: null }),
+      toggleMushafFullscreen: () => set((s) => ({ mushafFullscreen: !s.mushafFullscreen })),
       navigateTo: (surah, verse = 1, page) =>
         set({ currentSurah: surah, currentVerse: verse, ...(page ? { currentPage: page } : {}) }),
     }),

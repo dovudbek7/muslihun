@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { BookOpen, Search, Brain, Hash, User, Settings2 } from 'lucide-react'
+import { BookOpen, Search, Brain, Mic, User, Settings2 } from 'lucide-react'
 import { useUIStore } from '@/stores/uiStore'
 import { cn } from '@/components/ui/cn'
 
@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { to: '/', icon: BookOpen, label: "Qur'on" },
   { to: '/search', icon: Search, label: 'Qidiruv' },
   { to: '/hifz', icon: Brain, label: 'Hifz' },
-  { to: '/tasbih', icon: Hash, label: 'Tasbih' },
+  { to: '/recite/1', icon: Mic, label: 'Qiroat' },
   { to: '/profile', icon: User, label: 'Profil' },
 ]
 
