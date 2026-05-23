@@ -36,9 +36,13 @@ export function useLogout() {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const refresh = localStorage.getItem('refresh_token')
-      return api.post('/auth/logout/', { refresh })
+      try {
+        await api.post('/auth/logout/', { refresh })
+      } catch {
+        // Server-side logout failure — still clear client state
+      }
     },
     onSettled: () => {
       localStorage.removeItem('access_token')

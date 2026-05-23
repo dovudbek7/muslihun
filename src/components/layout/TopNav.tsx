@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { BookOpen, Layers, AlignJustify, Search, Settings } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { PrayerCountdown, CurrentPrayer } from '@/components/prayer/PrayerCountdown'
 import { useUIStore } from '@/stores/uiStore'
 import { useQuranStore } from '@/stores/quranStore'
@@ -12,6 +13,8 @@ interface TopNavProps {
 export function TopNav({ showPrayer = true }: TopNavProps) {
   const { openDrawer, toggleSearch } = useUIStore()
   const { currentSurah, currentPage, currentJuz, zenMode } = useQuranStore()
+  const location = useLocation()
+  const isReaderRoute = location.pathname.startsWith('/read')
 
   if (zenMode) return null
 
@@ -30,21 +33,25 @@ export function TopNav({ showPrayer = true }: TopNavProps) {
         )}
 
         <div className="flex items-center gap-1">
-          <NavPill
-            label={`Sura ${currentSurah}`}
-            icon={<BookOpen size={12} />}
-            onClick={() => openDrawer('surah')}
-          />
-          <NavPill
-            label={`${currentPage}-sahifa`}
-            icon={<AlignJustify size={12} />}
-            onClick={() => openDrawer('page')}
-          />
-          <NavPill
-            label={`${currentJuz}-juz`}
-            icon={<Layers size={12} />}
-            onClick={() => openDrawer('juz')}
-          />
+          {isReaderRoute && (
+            <>
+              <NavPill
+                label={`Sura ${currentSurah}`}
+                icon={<BookOpen size={12} />}
+                onClick={() => openDrawer('surah')}
+              />
+              <NavPill
+                label={`${currentPage}-sahifa`}
+                icon={<AlignJustify size={12} />}
+                onClick={() => openDrawer('page')}
+              />
+              <NavPill
+                label={`${currentJuz}-juz`}
+                icon={<Layers size={12} />}
+                onClick={() => openDrawer('juz')}
+              />
+            </>
+          )}
         </div>
 
         {showPrayer ? (

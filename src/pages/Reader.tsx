@@ -1,21 +1,53 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Settings2, BookOpenCheck, Play, Maximize2, X, Mic } from 'lucide-react'
+import { Settings2, BookOpenCheck, Play, Maximize2, X } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useAudioStore } from '@/stores/audioStore'
 import { useSurah, usePage, useSurahs } from '@/api/quran'
+import type { Verse } from '@/types/quran'
+import { loadProgress } from '@/utils/recitationProgress'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { MushafView } from '@/components/quran/MushafView'
-import { RecitationSheet } from '@/components/quran/RecitationSheet'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/components/ui/cn'
-import type { Verse } from '@/types/quran'
 
 const CDN_RECITER = 'ar.alafasy'
 
+function Bismillah() {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="flex flex-col items-center py-8 px-6 gap-3"
+    >
+      <div className="flex items-center gap-3 w-full max-w-xs">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/40" />
+        <span className="text-accent/50 text-xs">✦</span>
+        <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/40" />
+      </div>
+      <p
+        dir="rtl"
+        lang="ar"
+        className="font-arabic text-text-arabic text-3xl leading-loose text-center tracking-wide"
+        style={{ fontFeatureSettings: '"liga" 1, "calt" 1' }}
+      >
+        بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+      </p>
+      <div className="flex items-center gap-3 w-full max-w-xs">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent to-accent/40" />
+        <span className="text-accent/50 text-xs">✦</span>
+        <div className="flex-1 h-px bg-gradient-to-l from-transparent to-accent/40" />
+      </div>
+    </motion.div>
+  )
+}
+
 export function Reader() {
+  useLocation() // route tracking
+
   const { surahNumber, pageNumber } = useParams<{
     surahNumber?: string
     pageNumber?: string
@@ -26,11 +58,10 @@ export function Reader() {
     currentSurah, currentVerse, currentPage, language,
     readingMode, zenMode, fontSize, mushafFullscreen,
     setCurrentSurah, setCurrentVerse, setCurrentPage, setCurrentJuz,
-    toggleMushafFullscreen,
+    toggleMushafFullscreen, openRecitation, openContinuousRecitation,
   } = useQuranStore()
   const { openDrawer } = useUIStore()
   const { play } = useAudioStore()
-  const [recitationVerse, setRecitationVerse] = useState<Verse | null>(null)
 
   const activeSurah = surahNumber ? parseInt(surahNumber) : currentSurah
   const activePage = pageNumber ? parseInt(pageNumber) : currentPage
@@ -83,6 +114,37 @@ export function Reader() {
   const verses: Verse[] = readingMode === 'scroll'
     ? (surah?.verses ?? [])
     : (pageData?.verses ?? [])
+
+  // FAB event — continuous surah recitation from current position (or saved progress)
+  useEffect(() => {
+    const handler = () => {
+      const surahVerses = surah?.verses
+      if (!surahVerses?.length) return
+
+      // Prefer saved progress > current scroll position
+      const saved = loadProgress(activeSurah)
+      let startIdx = 0
+      if (saved !== null && saved < surahVerses.length) {
+        startIdx = saved
+      } else if (readingMode === 'scroll') {
+        startIdx = Math.max(0, surahVerses.findIndex(v => v.number === currentVerse))
+      } else {
+        const firstPageVerse = pageData?.verses[0]
+        if (firstPageVerse) {
+          const found = surahVerses.findIndex(v => v.number === firstPageVerse.number)
+          startIdx = Math.max(0, found)
+        }
+      }
+
+      openContinuousRecitation(
+        activeSurah,
+        surahVerses.map(v => ({ id: v.id, number: v.number, text_arabic: v.text_arabic })),
+        startIdx,
+      )
+    }
+    window.addEventListener('open-recitation-fab', handler)
+    return () => window.removeEventListener('open-recitation-fab', handler)
+  }, [surah, currentVerse, pageData, readingMode, activeSurah, openContinuousRecitation])
 
   function handlePlaySurah() {
     const url = `https://cdn.islamic.network/quran/audio-surah/128/${CDN_RECITER}/${activeSurah}.mp3`
@@ -173,15 +235,7 @@ export function Reader() {
       ) : (
         <>
           {readingMode === 'scroll' && surah && verses.length > 0 && surah.number !== 1 && surah.number !== 9 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex justify-center py-6"
-            >
-              <p className="font-arabic text-text-arabic text-2xl leading-loose" dir="rtl">
-                بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-              </p>
-            </motion.div>
+            <Bismillah />
           )}
 
           <div className={cn('px-3 py-2 space-y-2', zenMode && 'px-4')}>
@@ -195,7 +249,7 @@ export function Reader() {
                 onVisible={(v) => {
                   if (currentSurah === activeSurah) setCurrentVerse(v.number)
                 }}
-                onRecite={() => setRecitationVerse(verse)}
+                onRecite={() => openRecitation(activeSurah, verse.number, verse.text_arabic)}
               />
             ))}
           </div>
@@ -208,28 +262,6 @@ export function Reader() {
           <p className="text-text-muted/50 text-xs">Backend serveriga ulanishni tekshiring</p>
         </div>
       )}
-
-      {/* Floating mic button — scroll modeda */}
-      {readingMode === 'scroll' && !zenMode && verses.length > 0 && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            const activeVerse = verses.find(v => v.number === currentVerse) ?? verses[0]
-            setRecitationVerse(activeVerse)
-          }}
-          className="fixed bottom-24 right-5 z-30 w-14 h-14 rounded-full bg-accent shadow-lg shadow-accent/30 flex items-center justify-center text-bg-primary"
-          title="Qiroat mashqi"
-        >
-          <Mic size={22} />
-        </motion.button>
-      )}
-
-      <RecitationSheet
-        verse={recitationVerse}
-        onClose={() => setRecitationVerse(null)}
-      />
     </div>
   )
 }

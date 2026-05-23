@@ -14,18 +14,57 @@ interface Props {
   onVerseClick?: (verse: Verse) => void
 }
 
-const CORNER_POS = {
-  tl: 'top-1 left-1',
-  tr: 'top-1 right-1',
-  bl: 'bottom-1 left-1 rotate-90',
-  br: 'bottom-1 right-1 -rotate-90',
+const BORDER_RADIUS = {
+  right: 'rounded-r-2xl',
+  left: 'rounded-l-2xl',
+  single: 'rounded-2xl',
 } as const
 
-const BORDER_RADIUS = {
-  right: 'rounded-r-xl',
-  left: 'rounded-l-xl',
-  single: 'rounded-xl',
-} as const
+function OrnamentLine() {
+  return (
+    <svg width="100%" height="6" viewBox="0 0 200 6" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 3 Q25 0 50 3 Q75 6 100 3 Q125 0 150 3 Q175 6 200 3" fill="none" stroke="var(--mushaf-accent,#8B6520)" strokeWidth="0.8" opacity="0.6"/>
+    </svg>
+  )
+}
+
+function SurahBanner({ surah }: { surah: Surah }) {
+  return (
+    <div className="flex justify-center px-3 pt-1 pb-2 flex-shrink-0">
+      <div className="relative w-full max-w-[280px]">
+        {/* Outer decorative border */}
+        <div
+          className="relative rounded-lg overflow-hidden"
+          style={{
+            background: 'var(--mushaf-header-bg, linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%))',
+            padding: '2px',
+          }}
+        >
+          {/* Diamond ornaments on outer border */}
+          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#F5EDD0] text-[8px] opacity-80 select-none">◆❖◆</span>
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[#F5EDD0] text-[8px] opacity-80 select-none">◆❖◆</span>
+
+          {/* Inner content */}
+          <div
+            className="relative rounded-md flex flex-col items-center py-2 px-8"
+            style={{ background: 'linear-gradient(135deg, #F5EDD0 0%, #EDE0C4 100%)' }}
+          >
+            <p
+              className="font-arabic text-center leading-snug font-bold"
+              style={{ fontSize: 16, color: 'var(--mushaf-accent, #8B6520)' }}
+              dir="rtl"
+            >
+              سُورَةُ {surah.name_arabic}
+            </p>
+            <p style={{ fontSize: 9, color: 'var(--mushaf-accent,#8B6520)', opacity: 0.7 }} className="mt-0.5">
+              {surah.name_transliteration} • {surah.total_verses} آية
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allSurahs, onVerseClick }: Props) {
   const startingSurahs = useMemo(
@@ -38,67 +77,61 @@ export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allS
   return (
     <div
       className={cn('relative flex flex-col h-full overflow-hidden', br)}
-      style={{ background: 'var(--mushaf-bg, linear-gradient(135deg, #1a1208 0%, #120F0E 50%, #1a1208 100%))' }}
+      style={{
+        background: 'var(--mushaf-bg, linear-gradient(160deg, #F5EDD0 0%, #EDE0C4 50%, #F0E8C8 100%))',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+      }}
     >
-      {/* Outer border */}
+      {/* Outer double border frame */}
       <div
         className={cn('absolute inset-0 pointer-events-none z-10', br)}
-        style={{ border: '2.5px solid rgba(45,106,79,0.65)', boxShadow: 'inset 0 0 0 1px rgba(45,106,79,0.15)' }}
+        style={{ border: '2px solid var(--mushaf-border, rgba(139,90,20,0.45))' }}
       />
-      {/* Inner border */}
       <div
-        className={cn('absolute inset-[7px] pointer-events-none z-10', br)}
-        style={{ border: '1px solid rgba(45,106,79,0.3)' }}
+        className={cn('absolute inset-[5px] pointer-events-none z-10', br)}
+        style={{ border: '1px solid var(--mushaf-border, rgba(139,90,20,0.45))', opacity: 0.5 }}
       />
 
       {/* Corner ornaments */}
-      {Object.entries(CORNER_POS).map(([key, pos]) => (
-        <span key={key} className={cn('absolute z-20 text-emerald-600/50 text-[10px] leading-none select-none', pos)}>
-          ✿
-        </span>
-      ))}
+      <span className="absolute top-1.5 left-1.5 z-20 text-[10px] leading-none select-none" style={{ color: 'var(--mushaf-accent,#8B6520)', opacity: 0.7 }}>✦</span>
+      <span className="absolute top-1.5 right-1.5 z-20 text-[10px] leading-none select-none" style={{ color: 'var(--mushaf-accent,#8B6520)', opacity: 0.7 }}>✦</span>
+      <span className="absolute bottom-1.5 left-1.5 z-20 text-[10px] leading-none select-none" style={{ color: 'var(--mushaf-accent,#8B6520)', opacity: 0.7 }}>✦</span>
+      <span className="absolute bottom-1.5 right-1.5 z-20 text-[10px] leading-none select-none" style={{ color: 'var(--mushaf-accent,#8B6520)', opacity: 0.7 }}>✦</span>
 
-      {/* Top bar: surah right, juz left (RTL) */}
-      <div className="relative flex justify-between items-center px-5 pt-3 pb-1 flex-shrink-0" dir="rtl">
-        {startingSurahs[0] ? (
-          <span className="text-[10px] text-emerald-700/70 dark:text-emerald-400/60 font-arabic">
-            سُورَةُ {startingSurahs[0].name_arabic}
-          </span>
-        ) : <span />}
-        <span className="text-[10px] text-emerald-700/70 dark:text-emerald-400/60 font-arabic">
-          {juzNumber ? `الجزء ${toAr(juzNumber)}` : ''}
+      {/* Top bar: surah (right) — juz (left), RTL */}
+      <div className="relative flex justify-between items-center px-6 pt-4 pb-1 flex-shrink-0" dir="rtl">
+        <span className="font-arabic" style={{ fontSize: 9, color: 'var(--mushaf-accent,#8B6520)', opacity: 0.75 }}>
+          {startingSurahs[0]?.name_arabic
+            ? `سُورَةُ ${startingSurahs[0].name_arabic}`
+            : verses[0]?.surah_number
+              ? ''
+              : ''}
+        </span>
+        <span className="font-arabic" style={{ fontSize: 9, color: 'var(--mushaf-accent,#8B6520)', opacity: 0.75 }}>
+          {juzNumber ? `الجُزْءُ ${toAr(juzNumber)}` : ''}
         </span>
       </div>
 
-      {/* Surah name box(es) */}
+      {/* Top ornament line */}
+      <div className="px-5 pb-1 flex-shrink-0 opacity-60">
+        <OrnamentLine />
+      </div>
+
+      {/* Surah banner(s) */}
       {startingSurahs.map(surah => (
-        <div key={surah.number} className="flex justify-center px-4 pt-1 pb-2 flex-shrink-0">
-          <div
-            className="relative px-6 py-1.5 text-center"
-            style={{
-              background: 'linear-gradient(135deg, rgba(45,106,79,0.12), rgba(45,106,79,0.04))',
-              border: '1px solid rgba(45,106,79,0.38)',
-              borderRadius: 8,
-            }}
-          >
-            <span className="absolute top-0.5 left-2 text-emerald-600/40 text-xs select-none">❧</span>
-            <span className="absolute top-0.5 right-2 text-emerald-600/40 text-xs select-none">❧</span>
-            <p className="font-arabic text-emerald-800 dark:text-emerald-300 text-lg leading-snug">
-              {surah.name_arabic}
-            </p>
-            <p className="text-emerald-700/55 dark:text-emerald-400/55 text-[10px] mt-0.5">
-              {surah.name_transliteration} • {surah.total_verses} آية
-            </p>
-          </div>
-        </div>
+        <SurahBanner key={surah.number} surah={surah} />
       ))}
 
       {/* Bismillah */}
       {startingSurahs.some(s => s.number !== 1 && s.number !== 9) && (
-        <div className="flex justify-center px-4 pb-1 flex-shrink-0">
+        <div className="flex justify-center px-4 pb-2 flex-shrink-0">
           <p
             className="font-arabic text-center leading-loose"
-            style={{ fontSize: fontSize + 1, color: 'var(--mushaf-text, var(--text-arabic))' }}
+            style={{
+              fontSize: fontSize + 1,
+              color: 'var(--mushaf-text, #2C1A0A)',
+              letterSpacing: '0.02em',
+            }}
             dir="rtl"
           >
             بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
@@ -106,26 +139,35 @@ export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allS
         </div>
       )}
 
-      {/* Arabic text */}
-      <div className="flex-1 px-4 pb-1 overflow-y-auto">
+      {/* Arabic verse text — continuous flow */}
+      <div className="flex-1 px-5 pb-1 overflow-hidden">
         <p
-          className="font-arabic text-right"
-          style={{ fontSize, lineHeight: '2.6', color: 'var(--mushaf-text, var(--text-arabic))' }}
+          className="font-arabic text-right leading-loose"
+          style={{
+            fontSize,
+            lineHeight: '2.55',
+            color: 'var(--mushaf-text, #2C1A0A)',
+          }}
           dir="rtl"
         >
           {verses.map(verse => (
             <span
               key={verse.id}
-              className="cursor-pointer hover:bg-emerald-800/10 active:bg-emerald-800/20 rounded transition-colors"
+              className="cursor-pointer transition-colors"
+              style={{ borderRadius: 3 }}
               onClick={() => onVerseClick?.(verse)}
             >
               {verse.text_arabic}
               {' '}
               <span
-                className="inline-flex items-center justify-center text-emerald-700/80 dark:text-emerald-500/70 mx-0.5"
-                style={{ fontSize: fontSize * 0.65 }}
+                className="inline-flex items-center justify-center"
+                style={{
+                  fontSize: fontSize * 0.62,
+                  color: 'var(--mushaf-accent, #8B6520)',
+                  fontFamily: 'serif',
+                }}
               >
-                ﴿{toAr(verse.number)}﴾
+                ۞{toAr(verse.number)}
               </span>
               {' '}
             </span>
@@ -133,9 +175,17 @@ export function MushafPage({ verses, fontSize, pageNumber, side = 'single', allS
         </p>
       </div>
 
+      {/* Bottom ornament line */}
+      <div className="px-5 pt-1 flex-shrink-0 opacity-60">
+        <OrnamentLine />
+      </div>
+
       {/* Page number */}
-      <div className="flex justify-center pt-1 pb-2.5 flex-shrink-0 border-t border-emerald-800/10">
-        <span className="font-arabic text-sm text-emerald-700/55 dark:text-emerald-500/55">
+      <div className="flex justify-center pb-3 pt-1 flex-shrink-0">
+        <span
+          className="font-arabic"
+          style={{ fontSize: 11, color: 'var(--mushaf-accent, #8B6520)', opacity: 0.75 }}
+        >
           {toAr(pageNumber)}
         </span>
       </div>

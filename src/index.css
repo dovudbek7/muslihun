@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 :root, [data-theme="dark"] {
+  --mushaf-bg: linear-gradient(160deg, #F5EDD0 0%, #EDE0C4 50%, #F0E8C8 100%);
+  --mushaf-text: #2C1A0A;
+  --mushaf-border: rgba(139, 90, 20, 0.45);
+  --mushaf-accent: #8B6520;
+  --mushaf-header-bg: linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%);
   --bg-primary: #120F0E;
   --bg-secondary: #1A1613;
   --bg-card: #1F1A17;
@@ -40,11 +45,19 @@
   --border: rgba(184,134,11,0.18);
   --border-subtle: rgba(0,0,0,0.08);
   --border-strong: rgba(184,134,11,0.4);
-  --mushaf-bg: linear-gradient(135deg, #F5EDD0 0%, #EDE0C4 50%, #F5EDD0 100%);
+  --mushaf-bg: linear-gradient(160deg, #F5EDD0 0%, #EDE0C4 50%, #F0E8C8 100%);
   --mushaf-text: #2C1A0A;
+  --mushaf-border: rgba(139, 90, 20, 0.45);
+  --mushaf-accent: #8B6520;
+  --mushaf-header-bg: linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%);
 }
 
 [data-theme="gray"] {
+  --mushaf-bg: linear-gradient(160deg, #F5EDD0 0%, #EDE0C4 50%, #F0E8C8 100%);
+  --mushaf-text: #2C1A0A;
+  --mushaf-border: rgba(139, 90, 20, 0.45);
+  --mushaf-accent: #8B6520;
+  --mushaf-header-bg: linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%);
   --bg-primary: #1C1C1E;
   --bg-secondary: #242426;
   --bg-card: #2C2C2E;

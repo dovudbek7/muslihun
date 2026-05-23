@@ -15,9 +15,17 @@ interface QuranState {
   arabicOnly: boolean
   zenMode: boolean
   showTransliteration: boolean
+  showInlineTafsir: boolean
   reciterIdentifier: ReciterId
   activeTafsirVerse: { surah: number; verse: number } | null
   mushafFullscreen: boolean
+  activeRecitationVerse: { surahNumber: number; verseNumber: number; arabicText: string } | null
+  activeContinuousRecitation: {
+    surahNumber: number
+    verses: Array<{ id: number; number: number; text_arabic: string }>
+    startVerseIndex: number
+  } | null
+  continuousActiveVerseIdx: number
 
   setCurrentSurah: (n: number) => void
   setCurrentVerse: (n: number) => void
@@ -30,11 +38,21 @@ interface QuranState {
   toggleArabicOnly: () => void
   toggleZenMode: () => void
   toggleTransliteration: () => void
+  toggleInlineTafsir: () => void
   setReciterIdentifier: (id: ReciterId) => void
   openTafsir: (surah: number, verse: number) => void
   closeTafsir: () => void
   navigateTo: (surah: number, verse?: number, page?: number) => void
   toggleMushafFullscreen: () => void
+  openRecitation: (surahNumber: number, verseNumber: number, arabicText: string) => void
+  closeRecitation: () => void
+  openContinuousRecitation: (
+    surahNumber: number,
+    verses: Array<{ id: number; number: number; text_arabic: string }>,
+    startVerseIndex: number
+  ) => void
+  closeContinuousRecitation: () => void
+  setContinuousActiveVerseIdx: (idx: number) => void
 }
 
 export const useQuranStore = create<QuranState>()(
@@ -51,9 +69,13 @@ export const useQuranStore = create<QuranState>()(
       arabicOnly: false,
       zenMode: false,
       showTransliteration: false,
+      showInlineTafsir: false,
       reciterIdentifier: 'ar.alafasy',
       activeTafsirVerse: null,
       mushafFullscreen: false,
+      activeRecitationVerse: null,
+      activeContinuousRecitation: null,
+      continuousActiveVerseIdx: 0,
 
       setCurrentSurah: (n) => set({ currentSurah: n }),
       setCurrentVerse: (n) => set({ currentVerse: n }),
@@ -66,12 +88,20 @@ export const useQuranStore = create<QuranState>()(
       toggleArabicOnly: () => set((s) => ({ arabicOnly: !s.arabicOnly })),
       toggleZenMode: () => set((s) => ({ zenMode: !s.zenMode })),
       toggleTransliteration: () => set((s) => ({ showTransliteration: !s.showTransliteration })),
+      toggleInlineTafsir: () => set((s) => ({ showInlineTafsir: !s.showInlineTafsir })),
       setReciterIdentifier: (id) => set({ reciterIdentifier: id }),
       openTafsir: (surah, verse) => set({ activeTafsirVerse: { surah, verse } }),
       closeTafsir: () => set({ activeTafsirVerse: null }),
       toggleMushafFullscreen: () => set((s) => ({ mushafFullscreen: !s.mushafFullscreen })),
       navigateTo: (surah, verse = 1, page) =>
         set({ currentSurah: surah, currentVerse: verse, ...(page ? { currentPage: page } : {}) }),
+      openRecitation: (surahNumber, verseNumber, arabicText) =>
+        set({ activeRecitationVerse: { surahNumber, verseNumber, arabicText } }),
+      closeRecitation: () => set({ activeRecitationVerse: null }),
+      openContinuousRecitation: (surahNumber, verses, startVerseIndex) =>
+        set({ activeContinuousRecitation: { surahNumber, verses, startVerseIndex }, continuousActiveVerseIdx: startVerseIndex }),
+      closeContinuousRecitation: () => set({ activeContinuousRecitation: null, continuousActiveVerseIdx: 0 }),
+      setContinuousActiveVerseIdx: (idx) => set({ continuousActiveVerseIdx: idx }),
     }),
     {
       name: 'muslihun-quran',
@@ -85,6 +115,7 @@ export const useQuranStore = create<QuranState>()(
         tajweedMode: s.tajweedMode,
         arabicOnly: s.arabicOnly,
         showTransliteration: s.showTransliteration,
+        showInlineTafsir: s.showInlineTafsir,
         reciterIdentifier: s.reciterIdentifier,
       }),
     }

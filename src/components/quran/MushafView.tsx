@@ -1,13 +1,10 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Mic } from 'lucide-react'
 import { buildRoute } from '@/constants/routes'
 import { usePage, useSurahs } from '@/api/quran'
 import { useQuranStore } from '@/stores/quranStore'
 import { MushafPage } from './MushafPage'
 import { VerseActionSheet } from './VerseActionSheet'
-import { RecitationSheet } from './RecitationSheet'
 import type { Verse, Surah } from '@/types/quran'
 
 const TOTAL_PAGES = 604
@@ -34,11 +31,10 @@ interface Props {
 
 export function MushafView({ fontSize, page, isFullscreen = false }: Props) {
   const navigate = useNavigate()
-  const { language } = useQuranStore()
+  const { language, openRecitation, closeRecitation } = useQuranStore()
   const isDual = useIsDualPage()
 
   const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null)
-  const [recitationVerse, setRecitationVerse] = useState<Verse | null>(null)
   const touchStartX = useRef(0)
 
   // Always land on odd page as "right" page
@@ -193,22 +189,7 @@ export function MushafView({ fontSize, page, isFullscreen = false }: Props) {
         </div>
       </div>
 
-      {/* Floating mic FAB */}
-      {!selectedVerse && !recitationVerse && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            const firstVerse = rightData?.verses[0] ?? null
-            if (firstVerse) setRecitationVerse({ ...firstVerse, surah_number: rightSurah?.number ?? firstVerse.surah_number })
-          }}
-          className="fixed bottom-24 right-5 z-30 w-14 h-14 rounded-full bg-accent shadow-lg shadow-accent/30 flex items-center justify-center text-bg-primary"
-          title="Qiroat mashqi"
-        >
-          <Mic size={22} />
-        </motion.button>
-      )}
+      {/* FAB — Layout da boshqariladi, shu yerda event dispatch qilinadi */}
 
       {/* Verse action bottom sheet */}
       <VerseActionSheet
@@ -216,15 +197,12 @@ export function MushafView({ fontSize, page, isFullscreen = false }: Props) {
         surah={selectedVerse ? (getSurahForPage(selectedVerse.page_number ?? rightPage) ?? rightSurah) : null}
         onClose={() => setSelectedVerse(null)}
         onRecite={() => {
-          setRecitationVerse(selectedVerse)
+          if (selectedVerse) {
+            const surah = getSurahForPage(selectedVerse.page_number ?? rightPage)
+            openRecitation(surah?.number ?? 1, selectedVerse.number, selectedVerse.text_arabic)
+          }
           setSelectedVerse(null)
         }}
-      />
-
-      {/* Recitation sheet */}
-      <RecitationSheet
-        verse={recitationVerse}
-        onClose={() => setRecitationVerse(null)}
       />
     </>
   )

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/config/api'
+import { useAuthStore } from '@/stores/authStore'
 import type { Surah, Verse, PageData, JuzData, NavigationData, TafsirDetail, Language, BookmarkItem } from '@/types/quran'
 
 const STALE_TIME = 1000 * 60 * 60 * 24
@@ -85,10 +86,12 @@ export function useNavigationData() {
 }
 
 export function useBookmarks() {
+  const { isAuthenticated } = useAuthStore()
   return useQuery<BookmarkItem[]>({
     queryKey: quranKeys.bookmarks,
     queryFn: () => api.get('/quran/bookmarks/').then(r => r.data),
     staleTime: 1000 * 60 * 5,
+    enabled: isAuthenticated,
   })
 }
 

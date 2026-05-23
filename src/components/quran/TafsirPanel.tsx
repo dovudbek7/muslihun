@@ -86,10 +86,7 @@ export function TafsirPanel() {
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-text-muted uppercase tracking-wider">
-                        {data.source}
-                      </span>
+                    <div className="flex items-center justify-end">
                       <span className="text-xs text-text-muted">
                         {data.surah_name} • {data.surah_number}:{data.verse_number}
                       </span>

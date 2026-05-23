@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
@@ -54,11 +55,16 @@ api.interceptors.response.use(
           processQueue(err)
           localStorage.removeItem('access_token')
           localStorage.removeItem('refresh_token')
-          window.location.href = '/auth/login'
+          useAuthStore.getState().clearAuth()
           return Promise.reject(err)
         } finally {
           isRefreshing = false
         }
+      } else {
+        isRefreshing = false
+        processQueue(error)
+        localStorage.removeItem('access_token')
+        useAuthStore.getState().clearAuth()
       }
     }
     return Promise.reject(error)

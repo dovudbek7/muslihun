@@ -26,6 +26,7 @@ export function SettingsDrawer() {
     tajweedMode, toggleTajweedMode,
     arabicOnly, toggleArabicOnly,
     showTransliteration, toggleTransliteration,
+    showInlineTafsir, toggleInlineTafsir,
     reciterIdentifier, setReciterIdentifier,
   } = useQuranStore()
 
@@ -134,6 +135,12 @@ export function SettingsDrawer() {
               description="Lotin harflarida talaffuz"
               active={showTransliteration}
               onToggle={toggleTransliteration}
+            />
+            <Toggle
+              label="Tafsir (inline)"
+              description="Har oyat tagida tafsirni ko'rsatish"
+              active={showInlineTafsir}
+              onToggle={toggleInlineTafsir}
             />
           </div>
         </section>

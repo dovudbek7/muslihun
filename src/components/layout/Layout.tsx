@@ -2,12 +2,15 @@ import { type ReactNode, useRef, useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
+import { Mic } from 'lucide-react'
 import { TopNav } from './TopNav'
 import { BottomNav } from './BottomNav'
 import { Sidebar } from './Sidebar'
 import { NavigationDrawer } from '@/components/navigation/NavigationDrawer'
 import { SearchOverlay } from '@/components/search/SearchOverlay'
 import { TafsirPanel } from '@/components/quran/TafsirPanel'
+import { RecitationSheet } from '@/components/quran/RecitationSheet'
+import { ContinuousControlBar } from '@/components/quran/ContinuousControlBar'
 import { AudioPlayerBar } from '@/components/audio/AudioPlayerBar'
 import { Toast } from '@/components/ui/Toast'
 import { SettingsDrawer } from '@/components/settings/SettingsDrawer'
@@ -30,10 +33,17 @@ interface LayoutProps {
 const PULL_THRESHOLD = 72
 
 export function Layout({ children, showTopNav = true }: LayoutProps) {
-  const { zenMode } = useQuranStore()
+  const {
+    zenMode, readingMode,
+    activeRecitationVerse, closeRecitation,
+    activeContinuousRecitation, closeContinuousRecitation,
+  } = useQuranStore()
   const { audioUrl } = useAudioStore()
   const location = useLocation()
   const qc = useQueryClient()
+
+  const isReaderRoute = location.pathname.startsWith('/read')
+  const showMicFab = isReaderRoute && !zenMode && !activeRecitationVerse && !activeContinuousRecitation
 
   const touchStartY = useRef(0)
   const [pullDist, setPullDist] = useState(0)
@@ -163,6 +173,50 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
       <SearchOverlay />
       <TafsirPanel />
       <Toast />
+
+      {/* Floating mic FAB — faqat reader scroll modeda */}
+      <AnimatePresence>
+        {showMicFab && (
+          <motion.button
+            key="mic-fab"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => window.dispatchEvent(new CustomEvent('open-recitation-fab'))}
+            className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full bg-accent shadow-lg shadow-accent/30 flex items-center justify-center text-bg-primary"
+            title="Qiroat mashqi"
+          >
+            <Mic size={22} />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Single-verse recitation sheet */}
+      {activeRecitationVerse && (
+        <RecitationSheet
+          verse={{
+            id: activeRecitationVerse.verseNumber,
+            number: activeRecitationVerse.verseNumber,
+            text_arabic: activeRecitationVerse.arabicText,
+            surah_number: activeRecitationVerse.surahNumber,
+            text_transliteration: '',
+            page_number: 0,
+            juz_number: 0,
+            hizb_quarter: 0,
+            is_sajda: false,
+            global_index: 0,
+            translations: [],
+          }}
+          onClose={closeRecitation}
+        />
+      )}
+
+      {/* Continuous recitation control bar — inline on reader */}
+      <AnimatePresence>
+        {activeContinuousRecitation && <ContinuousControlBar />}
+      </AnimatePresence>
     </div>
   )
 }

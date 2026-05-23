@@ -3,6 +3,7 @@ import { splitWords, wordsMatch } from '@/utils/arabicNormalize'
 
 export type WordStatus = 'dim' | 'current' | 'correct' | 'wrong'
 export type SessionStatus = 'idle' | 'listening' | 'paused' | 'finished'
+export type DisplayMode = 'highlight' | 'reveal'
 
 export interface WordState {
   text: string
@@ -16,6 +17,7 @@ export interface LastError {
 
 interface RecitationState {
   sessionStatus: SessionStatus
+  displayMode: DisplayMode
   words: WordState[]
   currentIndex: number
   correctCount: number
@@ -26,23 +28,28 @@ interface RecitationState {
   pause: () => void
   resume: () => void
   reset: () => void
+  setDisplayMode: (mode: DisplayMode) => void
 }
 
 export const useRecitationStore = create<RecitationState>((set, get) => ({
   sessionStatus: 'idle',
+  displayMode: 'highlight',
   words: [],
   currentIndex: 0,
   correctCount: 0,
   errorCount: 0,
   lastError: null,
 
+  setDisplayMode: (mode) => set({ displayMode: mode }),
+
   startSession: (ayahText) => {
+    const { displayMode } = get()
     const wordList = splitWords(ayahText)
     const words: WordState[] = wordList.map((text, i) => ({
       text,
       status: i === 0 ? 'current' : 'dim',
     }))
-    set({ sessionStatus: 'listening', words, currentIndex: 0, correctCount: 0, errorCount: 0 })
+    set({ sessionStatus: 'listening', words, currentIndex: 0, correctCount: 0, errorCount: 0, lastError: null, displayMode })
   },
 
   processWord: (recognized) => {
@@ -66,7 +73,6 @@ export const useRecitationStore = create<RecitationState>((set, get) => ({
       }
     } else {
       newWords[currentIndex] = { ...current, status: 'wrong' }
-      // wasWrong bo'lsa errorCount oshmasin
       set({ words: newWords, errorCount: wasWrong ? errorCount : errorCount + 1, lastError: { recognized, expected: current.text } })
     }
   },

@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { Play, BookOpen, Bookmark, Mic } from 'lucide-react'
 import { ArabicText } from './ArabicText'
+import { RecitationAyah } from './RecitationAyah'
 import { cn } from '@/components/ui/cn'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAudioStore } from '@/stores/audioStore'
-import { useToggleBookmark, useBookmarkIds } from '@/api/quran'
+import { useToggleBookmark, useBookmarkIds, useTafsir } from '@/api/quran'
 import type { Verse } from '@/types/quran'
 
 interface VerseCardProps {
@@ -18,9 +19,10 @@ interface VerseCardProps {
 }
 
 export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVisible, onRecite }: VerseCardProps) {
-  const [showActions, setShowActions] = useState(false)
-  const [ripples, setRipples] = useState<{ x: number; y: number; id: number }[]>()
-  const { openTafsir, arabicOnly, showTransliteration, zenMode, language, reciterIdentifier } = useQuranStore()
+  const {
+    openTafsir, arabicOnly, showTransliteration, showInlineTafsir, zenMode, language, reciterIdentifier,
+    activeContinuousRecitation, continuousActiveVerseIdx,
+  } = useQuranStore()
   const { play, currentVerse, currentSurah } = useAudioStore()
   const { data: bookmarkIds } = useBookmarkIds()
   const toggleBookmark = useToggleBookmark()
@@ -39,27 +41,15 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
   }, [verse, onVisible])
 
   const isPlaying = currentSurah === surahNumber && currentVerse === verse.number
+  const isRecitationActive = activeContinuousRecitation != null &&
+    activeContinuousRecitation.verses[continuousActiveVerseIdx]?.id === verse.id
   const translation = verse.translations?.find(t => t.language === language)?.text
     || verse.translation
     || null
 
-  const handleRipple = (e: React.MouseEvent) => {
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const id = Date.now()
-    setRipples(prev => [...(prev || []), { x, y, id }])
-    setTimeout(() => setRipples(prev => prev?.filter(r => r.id !== id)), 600)
-  }
-
   const handlePlayVerse = () => {
     const url = `https://cdn.islamic.network/quran/audio/128/${reciterIdentifier}/${surahNumber.toString().padStart(3, '0')}${verse.number.toString().padStart(3, '0')}.mp3`
     play(surahNumber, verse.number, url, totalVerses)
-  }
-
-  const handleBookmark = () => {
-    toggleBookmark.mutate({ verse_id: verse.id })
   }
 
   if (zenMode) {
@@ -77,37 +67,26 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
   return (
     <motion.div
       ref={cardRef}
+      data-verse-number={verse.number}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className={cn(
-        'group relative overflow-hidden rounded-2xl px-5 py-5 transition-all duration-300 cursor-pointer',
+        'relative overflow-hidden rounded-2xl px-4 pt-3 pb-4 transition-all duration-300',
         'border',
-        isActive
-          ? 'bg-accent/5 border-accent/20 shadow-accent-glow'
-          : 'bg-bg-card border-border-subtle hover:border-border hover:bg-bg-elevated',
-        isPlaying && 'border-accent/40 bg-accent/8'
+        isRecitationActive
+          ? 'bg-accent/5 border-accent/40 shadow-accent-glow'
+          : isActive
+            ? 'bg-accent/5 border-accent/20 shadow-accent-glow'
+            : 'bg-bg-card border-border-subtle',
+        isPlaying && !isRecitationActive && 'border-accent/40 bg-accent/8'
       )}
-      onClick={(e) => { handleRipple(e); setShowActions(s => !s) }}
     >
-      {ripples?.map(r => (
-        <span
-          key={r.id}
-          className="absolute rounded-full bg-accent/20 pointer-events-none"
-          style={{
-            left: r.x - 10,
-            top: r.y - 10,
-            width: 20,
-            height: 20,
-            animation: 'ripple 0.6s ease-out forwards',
-          }}
-        />
-      ))}
-
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 flex flex-col items-center gap-1.5">
+      {/* Top row: verse number + icon buttons */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           <div className={cn(
-            'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold',
+            'w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold',
             isPlaying ? 'bg-accent text-bg-primary' : 'bg-bg-elevated text-text-muted border border-border-subtle'
           )}>
             {verse.number}
@@ -117,63 +96,58 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex justify-end mb-3">
-            <ArabicText text={verse.text_arabic} isActive={isPlaying} />
-          </div>
-
-          {showTransliteration && verse.text_transliteration && (
-            <p className="text-text-muted text-sm italic mt-2 text-left leading-relaxed">
-              {verse.text_transliteration}
-            </p>
-          )}
-
-          {!arabicOnly && translation && (
-            <motion.p
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="text-text-secondary text-sm mt-3 leading-relaxed text-left border-t border-border-subtle pt-3"
-            >
-              {translation}
-            </motion.p>
-          )}
+        <div className="flex items-center gap-1">
+          <IconBtn
+            icon={<Play size={15} />}
+            onClick={handlePlayVerse}
+            active={isPlaying}
+            title="Tinglash"
+          />
+          <IconBtn
+            icon={<BookOpen size={15} />}
+            onClick={() => openTafsir(surahNumber, verse.number)}
+            title="Tafsir"
+          />
+          <IconBtn
+            icon={<Bookmark size={15} />}
+            onClick={() => toggleBookmark.mutate({ verse_id: verse.id })}
+            active={isBookmarked}
+            title="Saqlash"
+          />
+          <IconBtn
+            icon={<Mic size={15} />}
+            onClick={() => onRecite?.()}
+            title="Qiroat"
+          />
         </div>
       </div>
 
-      <AnimatePresence>
-        {showActions && (
-          <motion.div
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 4 }}
-            className="flex gap-2 mt-4 pt-3 border-t border-border-subtle"
-            onClick={e => e.stopPropagation()}
-          >
-            <ActionBtn
-              icon={<Play size={14} />}
-              label="Tinglash"
-              onClick={handlePlayVerse}
-              active={isPlaying}
-            />
-            <ActionBtn
-              icon={<BookOpen size={14} />}
-              label="Tafsir"
-              onClick={() => { openTafsir(surahNumber, verse.number); setShowActions(false) }}
-            />
-            <ActionBtn
-              icon={<Bookmark size={14} />}
-              label={isBookmarked ? "Saqlangan" : "Saqlash"}
-              onClick={handleBookmark}
-              active={isBookmarked}
-            />
-            <ActionBtn
-              icon={<Mic size={14} />}
-              label="Qiroat"
-              onClick={() => { onRecite?.(); setShowActions(false) }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Arabic text — full width */}
+      <div className="flex justify-end">
+        {isRecitationActive
+          ? <RecitationAyah arabicText={verse.text_arabic} verseNumber={verse.number} />
+          : <ArabicText text={verse.text_arabic} isActive={isPlaying} />
+        }
+      </div>
+
+      {/* Transliteration */}
+      {showTransliteration && verse.text_transliteration && (
+        <p className="text-text-muted text-sm italic mt-3 text-left leading-relaxed">
+          {verse.text_transliteration}
+        </p>
+      )}
+
+      {/* Translation */}
+      {!arabicOnly && translation && (
+        <p className="text-text-secondary text-sm mt-3 leading-relaxed text-left border-t border-border-subtle pt-3">
+          {translation}
+        </p>
+      )}
+
+      {/* Inline tafsir */}
+      {showInlineTafsir && (
+        <InlineTafsirText surahNumber={surahNumber} verseNumber={verse.number} />
+      )}
 
       {isPlaying && (
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent/30">
@@ -188,31 +162,57 @@ export function VerseCard({ verse, surahNumber, totalVerses = 0, isActive, onVis
   )
 }
 
-function ActionBtn({
+function InlineTafsirText({ surahNumber, verseNumber }: { surahNumber: number; verseNumber: number }) {
+  const { language } = useQuranStore()
+  const { data, isLoading } = useTafsir(surahNumber, verseNumber, language)
+
+  if (isLoading) {
+    return (
+      <div className="mt-3 pt-3 border-t border-border-subtle">
+        <div className="h-3 bg-bg-elevated rounded animate-pulse w-3/4 mb-1.5" />
+        <div className="h-3 bg-bg-elevated rounded animate-pulse w-1/2" />
+      </div>
+    )
+  }
+
+  if (!data?.content) return null
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      className="mt-3 pt-3 border-t border-border-subtle"
+    >
+      <p className="text-xs text-text-muted font-medium mb-1.5 uppercase tracking-wider">Tafsir</p>
+      <p className="text-text-secondary text-sm leading-relaxed text-left">{data.content}</p>
+    </motion.div>
+  )
+}
+
+function IconBtn({
   icon,
-  label,
   onClick,
   active,
+  title,
 }: {
   icon: React.ReactNode
-  label: string
   onClick: () => void
   active?: boolean
+  title?: string
 }) {
   return (
     <motion.button
-      whileTap={{ scale: 0.93 }}
+      whileTap={{ scale: 0.9 }}
       onClick={onClick}
+      title={title}
       className={cn(
-        'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium',
-        'transition-all duration-200',
+        'w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200',
         active
           ? 'bg-accent text-bg-primary'
-          : 'bg-bg-hover text-text-secondary hover:text-text-primary hover:bg-bg-elevated'
+          : 'text-text-muted hover:text-text-primary hover:bg-bg-elevated'
       )}
     >
       {icon}
-      {label}
     </motion.button>
   )
 }

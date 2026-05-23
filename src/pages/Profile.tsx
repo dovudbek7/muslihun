@@ -42,7 +42,11 @@ export function Profile() {
   const logout = useLogout()
 
   async function handleLogout() {
-    await logout.mutateAsync()
+    try {
+      await logout.mutateAsync()
+    } catch {
+      // token noto'g'ri bo'lsa ham — onSettled ichida tozalanadi
+    }
     navigate(ROUTES.LOGIN)
   }
 
@@ -222,13 +226,12 @@ function ToggleRow({
       <span className="text-text-muted">{icon}</span>
       <span className="flex-1 text-sm text-text-secondary text-left">{label}</span>
       <div className={cn(
-        'w-10 h-5.5 rounded-full transition-colors relative',
+        'w-11 h-6 rounded-full transition-colors relative flex-shrink-0',
         value ? 'bg-accent' : 'bg-bg-hover border border-border'
       )}>
         <motion.div
-          layout
-          className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm"
-          animate={{ left: value ? '1.25rem' : '0.125rem' }}
+          className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm"
+          animate={{ left: value ? '1.375rem' : '0.125rem' }}
           transition={{ type: 'spring', stiffness: 500, damping: 35 }}
         />
       </div>

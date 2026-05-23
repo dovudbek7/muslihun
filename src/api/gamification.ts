@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/config/api'
+import { useAuthStore } from '@/stores/authStore'
 import type {
   Streak, TasbihDhikr, TasbihSession,
   Achievement, UserAchievement, GamificationDashboard,
@@ -16,10 +17,12 @@ export const gamificationKeys = {
 }
 
 export function useStreak() {
+  const { isAuthenticated } = useAuthStore()
   return useQuery<Streak>({
     queryKey: gamificationKeys.streak,
     queryFn: () => api.get('/gamification/streak/').then(r => r.data),
     staleTime: 1000 * 60,
+    enabled: isAuthenticated,
   })
 }
 
@@ -79,16 +82,20 @@ export function useAchievements() {
 }
 
 export function useMyAchievements() {
+  const { isAuthenticated } = useAuthStore()
   return useQuery<UserAchievement[]>({
     queryKey: gamificationKeys.myAchievements,
     queryFn: () => api.get('/gamification/achievements/mine/').then(r => r.data?.results ?? r.data),
+    enabled: isAuthenticated,
   })
 }
 
 export function useGamificationDashboard() {
+  const { isAuthenticated } = useAuthStore()
   return useQuery<GamificationDashboard>({
     queryKey: gamificationKeys.dashboard,
     queryFn: () => api.get('/gamification/dashboard/').then(r => r.data),
     staleTime: 1000 * 60,
+    enabled: isAuthenticated,
   })
 }

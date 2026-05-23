@@ -30,7 +30,7 @@ export default function App() {
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
 
-        <Route path={ROUTES.HOME} element={<Layout><Home /></Layout>} />
+        <Route path={ROUTES.HOME} element={<Layout showTopNav={false}><Home /></Layout>} />
         <Route path={ROUTES.SURAHS} element={<Layout><Surahs /></Layout>} />
         <Route path={ROUTES.READER} element={<Layout><Reader /></Layout>} />
         <Route path={ROUTES.READER_SURAH} element={<Layout><Reader /></Layout>} />
