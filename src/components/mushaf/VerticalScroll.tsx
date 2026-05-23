@@ -10,6 +10,7 @@ interface Props {
   verses: Verse[]
   surah?: Surah | null
   fontSize: number
+  isFullscreen?: boolean
 }
 
 function SurahOrnament({ surah }: { surah: Surah }) {
@@ -20,14 +21,10 @@ function SurahOrnament({ surah }: { surah: Surah }) {
         <span style={{ color: '#C9A84C60' }} className="text-xs select-none">❖</span>
         <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, transparent, #C9A84C60)' }} />
       </div>
-
       <div className="relative w-full max-w-[260px]">
         <div
           className="rounded-xl overflow-hidden"
-          style={{
-            background: 'linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%)',
-            padding: '2px',
-          }}
+          style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #A67C30 50%, #C9A84C 100%)', padding: '2px' }}
         >
           <div
             className="rounded-lg flex flex-col items-center py-3 px-8"
@@ -46,7 +43,6 @@ function SurahOrnament({ surah }: { surah: Surah }) {
           </div>
         </div>
       </div>
-
       <div className="flex items-center gap-3 w-full max-w-xs">
         <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, transparent, #C9A84C60)' }} />
         <span style={{ color: '#C9A84C60' }} className="text-xs select-none">❖</span>
@@ -56,16 +52,18 @@ function SurahOrnament({ surah }: { surah: Surah }) {
   )
 }
 
-export function VerticalScroll({ verses, surah, fontSize }: Props) {
+export function VerticalScroll({ verses, surah, fontSize, isFullscreen = false }: Props) {
   const { reciterIdentifier } = useQuranStore()
   const { play, currentVerse, currentSurah } = useAudioStore()
   const activeSurah = surah?.number ?? 1
 
+  const height = isFullscreen ? '100dvh' : 'calc(100dvh - 7.5rem)'
+
   if (verses.length === 0) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: '#0f0a05' }}
+        className="flex items-center justify-center"
+        style={{ height, background: '#0f0a05' }}
       >
         <p style={{ color: '#C9A84C60', fontSize: 14 }}>Yuklanmoqda...</p>
       </div>
@@ -74,55 +72,57 @@ export function VerticalScroll({ verses, surah, fontSize }: Props) {
 
   return (
     <div
-      className="min-h-screen px-5 pt-2 pb-16"
-      style={{ background: 'linear-gradient(180deg, #0f0a05 0%, #1a120a 100%)' }}
+      className="overflow-y-auto"
+      style={{ height, background: 'linear-gradient(180deg, #0f0a05 0%, #1a120a 100%)' }}
     >
-      {surah && <SurahOrnament surah={surah} />}
+      <div className="px-5 pt-2 pb-16">
+        {surah && <SurahOrnament surah={surah} />}
 
-      {surah && surah.number !== 1 && surah.number !== 9 && (
-        <div className="flex justify-center mb-5">
-          <p
-            className="font-arabic text-center leading-loose"
-            style={{ fontSize: fontSize + 2, color: '#E8D5A0' }}
-            dir="rtl"
-          >
-            بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
-          </p>
-        </div>
-      )}
-
-      <p
-        className="font-arabic text-right"
-        style={{ fontSize, lineHeight: '3.2', color: '#F5EDD0', direction: 'rtl' }}
-        dir="rtl"
-      >
-        {verses.map((verse) => {
-          const isActive = currentSurah === activeSurah && currentVerse === verse.number
-          return (
-            <span
-              key={verse.id}
-              className={cn(
-                'cursor-pointer transition-colors duration-200 rounded-sm',
-                isActive ? 'text-amber-300' : 'hover:text-amber-200/60'
-              )}
-              onClick={() => {
-                const url = `https://cdn.islamic.network/quran/audio/128/${reciterIdentifier}/${String(activeSurah).padStart(3, '0')}${String(verse.number).padStart(3, '0')}.mp3`
-                play(activeSurah, verse.number, url)
-              }}
+        {surah && surah.number !== 1 && surah.number !== 9 && (
+          <div className="flex justify-center mb-5">
+            <p
+              className="font-arabic text-center leading-loose"
+              style={{ fontSize: fontSize + 2, color: '#E8D5A0' }}
+              dir="rtl"
             >
-              {verse.text_arabic}
-              {' '}
+              بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+            </p>
+          </div>
+        )}
+
+        <p
+          className="font-arabic text-right"
+          style={{ fontSize, lineHeight: '3.2', color: '#F5EDD0', direction: 'rtl' }}
+          dir="rtl"
+        >
+          {verses.map((verse) => {
+            const isActive = currentSurah === activeSurah && currentVerse === verse.number
+            return (
               <span
-                style={{ fontSize: fontSize * 0.58, color: '#C9A84C', fontFamily: 'serif' }}
-                className="select-none"
+                key={verse.id}
+                className={cn(
+                  'cursor-pointer transition-colors duration-200 rounded-sm',
+                  isActive ? 'text-amber-300' : 'hover:text-amber-200/60'
+                )}
+                onClick={() => {
+                  const url = `https://cdn.islamic.network/quran/audio/128/${reciterIdentifier}/${String(activeSurah).padStart(3, '0')}${String(verse.number).padStart(3, '0')}.mp3`
+                  play(activeSurah, verse.number, url)
+                }}
               >
-                ﴿{toAr(verse.number)}﴾
+                {verse.text_arabic}
+                {' '}
+                <span
+                  style={{ fontSize: fontSize * 0.58, color: '#C9A84C', fontFamily: 'serif' }}
+                  className="select-none"
+                >
+                  ﴿{toAr(verse.number)}﴾
+                </span>
+                {' '}
               </span>
-              {' '}
-            </span>
-          )
-        })}
-      </p>
+            )
+          })}
+        </p>
+      </div>
     </div>
   )
 }
