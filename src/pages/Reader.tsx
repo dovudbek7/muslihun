@@ -1,15 +1,19 @@
 import { useEffect } from 'react'
 import { useParams, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Settings2, BookOpenCheck, Play, Maximize2, X } from 'lucide-react'
+import { Settings2, BookOpenCheck, Play, Maximize2, X, AlignJustify, BookOpen, ZoomIn } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useUIStore } from '@/stores/uiStore'
 import { useAudioStore } from '@/stores/audioStore'
+import { useMushafStore } from '@/stores/mushafStore'
+import type { MushafMode } from '@/stores/mushafStore'
 import { useSurah, usePage, useSurahs } from '@/api/quran'
 import type { Verse } from '@/types/quran'
 import { loadProgress } from '@/utils/recitationProgress'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { MushafView } from '@/components/quran/MushafView'
+import { VerticalScroll } from '@/components/mushaf/VerticalScroll'
+import { ZoomablePageView } from '@/components/mushaf/ZoomablePageView'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/components/ui/cn'
 
@@ -60,6 +64,7 @@ export function Reader() {
     setCurrentSurah, setCurrentVerse, setCurrentPage, setCurrentJuz,
     toggleMushafFullscreen, openRecitation, openContinuousRecitation,
   } = useQuranStore()
+  const { mode: mushafMode, setMode: setMushafMode } = useMushafStore()
   const { openDrawer } = useUIStore()
   const { play } = useAudioStore()
 
@@ -109,7 +114,9 @@ export function Reader() {
     return () => window.removeEventListener('keydown', onKey)
   }, [mushafFullscreen, toggleMushafFullscreen])
 
-  const isLoading = readingMode === 'scroll' ? surahLoading : pageLoading
+  const isLoading = readingMode === 'scroll'
+    ? surahLoading
+    : mushafMode === 'vertical' ? surahLoading : pageLoading
 
   const verses: Verse[] = readingMode === 'scroll'
     ? (surah?.verses ?? [])
@@ -201,7 +208,7 @@ export function Reader() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             {readingMode === 'scroll' && surah && (
               <button
                 onClick={handlePlaySurah}
@@ -212,29 +219,66 @@ export function Reader() {
               </button>
             )}
             {readingMode === 'mushaf' && (
-              <button
-                onClick={toggleMushafFullscreen}
-                className="p-2 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors"
-                title="Katta ekran"
-              >
-                <Maximize2 size={16} />
-              </button>
+              <>
+                {(
+                  [
+                    { m: 'vertical' as MushafMode, icon: AlignJustify, title: 'Vertikal scroll' },
+                    { m: 'page' as MushafMode, icon: BookOpen, title: 'Sahifa-sahifa' },
+                    { m: 'zoom' as MushafMode, icon: ZoomIn, title: 'Kattalashtirish' },
+                  ] as const
+                ).map(({ m, icon: Icon, title }) => (
+                  <button
+                    key={m}
+                    onClick={() => setMushafMode(m)}
+                    className={cn(
+                      'p-1.5 rounded-lg transition-colors',
+                      mushafMode === m
+                        ? 'bg-accent/15 text-accent'
+                        : 'text-text-muted hover:text-text-primary hover:bg-bg-elevated'
+                    )}
+                    title={title}
+                  >
+                    <Icon size={14} />
+                  </button>
+                ))}
+                <button
+                  onClick={toggleMushafFullscreen}
+                  className="p-1.5 rounded-lg text-text-muted hover:text-accent hover:bg-accent/10 transition-colors ml-0.5"
+                  title="Katta ekran"
+                >
+                  <Maximize2 size={14} />
+                </button>
+              </>
             )}
             <button
               onClick={() => openDrawer('settings')}
-              className="p-2 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
+              className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-colors"
             >
-              <Settings2 size={16} />
+              <Settings2 size={15} />
             </button>
           </div>
         </div>
       )}
 
-      {readingMode === 'mushaf' && verses.length > 0 ? (
-        <MushafView verses={verses} fontSize={fontSize} page={activePage} surah={displaySurah} />
+      {readingMode === 'mushaf' ? (
+        <>
+          {mushafMode === 'vertical' && (
+            <VerticalScroll
+              verses={surah?.verses ?? []}
+              surah={surah ?? displaySurah ?? null}
+              fontSize={fontSize}
+            />
+          )}
+          {mushafMode === 'page' && verses.length > 0 && (
+            <MushafView verses={verses} fontSize={fontSize} page={activePage} surah={displaySurah} />
+          )}
+          {mushafMode === 'zoom' && (
+            <ZoomablePageView page={activePage} fontSize={fontSize} />
+          )}
+        </>
       ) : (
         <>
-          {readingMode === 'scroll' && surah && verses.length > 0 && surah.number !== 1 && surah.number !== 9 && (
+          {surah && verses.length > 0 && surah.number !== 1 && surah.number !== 9 && (
             <Bismillah />
           )}
 
@@ -243,7 +287,7 @@ export function Reader() {
               <VerseCard
                 key={verse.id}
                 verse={verse}
-                surahNumber={readingMode === 'scroll' ? activeSurah : verse.id}
+                surahNumber={activeSurah}
                 totalVerses={surah?.total_verses ?? 0}
                 isActive={currentVerse === verse.number && currentSurah === activeSurah}
                 onVisible={(v) => {

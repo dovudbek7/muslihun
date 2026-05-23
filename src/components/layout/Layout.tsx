@@ -91,7 +91,7 @@ export function Layout({ children, showTopNav = true }: LayoutProps) {
       <AudioEngine />
       <Sidebar />
 
-      <div className="flex flex-col flex-1 min-w-0 lg:max-w-2xl lg:mx-auto w-full">
+      <div className="flex flex-col flex-1 min-w-0 lg:max-w-3xl lg:mx-auto w-full">
         <AnimatePresence>
           {showTopNav && !zenMode && (
             <motion.div

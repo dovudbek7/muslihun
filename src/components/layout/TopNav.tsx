@@ -32,7 +32,7 @@ export function TopNav({ showPrayer = true }: TopNavProps) {
           <div className="w-28" />
         )}
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-none max-w-[45vw] sm:max-w-none">
           {isReaderRoute && (
             <>
               <NavPill

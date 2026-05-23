@@ -65,8 +65,8 @@ export function Home() {
           )}
         </div>
 
-        {/* 2x2 sections grid */}
-        <div className="grid grid-cols-2 gap-3 px-4">
+        {/* sections grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4">
           {SECTIONS.map(({ to, icon: Icon, label, color }, i) => (
             <motion.button
               key={to}
@@ -123,7 +123,7 @@ export function Home() {
               Barchasi
             </button>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {surahs?.slice(0, 10).map((surah, i) => (
               <motion.div
                 key={surah.number}

@@ -33,7 +33,7 @@ export function Surahs() {
         <h1 className="text-text-primary font-semibold text-lg">Barcha suralar</h1>
       </div>
 
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {surahs?.map((surah, i) => (
           <motion.div
             key={surah.number}
