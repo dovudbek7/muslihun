@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { BookOpen, Brain, Hash, Search, ChevronRight, Flame, Play } from 'lucide-react'
+import { BookOpen, Brain, Hash, Search, ChevronRight, Flame, Play, Compass } from 'lucide-react'
 import { useQuranStore } from '@/stores/quranStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useAudioStore } from '@/stores/audioStore'
@@ -15,6 +15,7 @@ const SECTIONS = [
   { to: '/hifz',         icon: Brain,    label: 'Hifz',    color: 'from-blue-500/20 to-blue-600/10 border-blue-500/20 text-blue-400' },
   { to: '/tasbih',       icon: Hash,     label: 'Tasbih',  color: 'from-purple-500/20 to-purple-600/10 border-purple-500/20 text-purple-400' },
   { to: '/search',       icon: Search,   label: 'Qidiruv', color: 'from-amber-500/20 to-amber-600/10 border-amber-500/20 text-amber-400' },
+  { to: '/qibla',        icon: Compass,  label: 'Qibla',   color: 'from-teal-500/20 to-teal-600/10 border-teal-500/20 text-teal-400' },
 ]
 
 const CDN_RECITER = 'ar.alafasy'
@@ -66,7 +67,7 @@ export function Home() {
         </div>
 
         {/* sections grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-4">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 px-4">
           {SECTIONS.map(({ to, icon: Icon, label, color }, i) => (
             <motion.button
               key={to}

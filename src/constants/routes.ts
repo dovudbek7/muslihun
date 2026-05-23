@@ -12,6 +12,7 @@ export const ROUTES = {
   TASBIH: '/tasbih',
   RECITE: '/recite/:surahId',
   PROFILE: '/profile',
+  QIBLA: '/qibla',
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
 } as const
