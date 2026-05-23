@@ -158,10 +158,19 @@ components/navigation/
   NavigationDrawer.tsx — 3-tab Drawer: Surah list (searchable), Page grid (604), Juz grid (30)
 
 components/prayer/
-  PrayerCountdown.tsx — countdown timer + CurrentPrayer component
+  PrayerCountdown.tsx   — countdown timer + CurrentPrayer component
+  PrayerTimesWidget.tsx — full-width home header: city (Nominatim), Hijri date, next prayer time big, HH:MM:SS countdown, oval arc (PrayerArc), sky gradient bg (useSkyBackground), settings button
+  PrayerArc.tsx         — SVG cubic bezier oval arc, 6 prayer dots, glowing current-time pointer moves by real clock
+
+hooks/
+  useSkyBackground.ts — 6 sky periods (night/dawn/morning/midday/afternoon/sunset), gradient string, 60s interval
+  useCityName.ts      — Nominatim reverse geocoding, 7-day localStorage cache
+
+utils/
+  hijriDate.ts — getHijriDate() via Intl API (islamic-umalqura calendar), strips "AH" suffix
 
 pages/
-  Home.tsx       — 2x2 section grid (Quran/Hifz/Tasbih/Search), last read card, namoz countdown, top-10 sura list + Play button per surah; name_transliteration only
+  Home.tsx       — Payme-style: PrayerTimesWidget sticky z-0 + content card z-10 -mt-8 slides over; 2x2 grid, last read, top-10 sura list
   Reader.tsx     — scroll mode (VerseCard list) + mushaf mode (MushafView), Play Surah button, Settings2→SettingsDrawer; name_transliteration
   Search.tsx     — standalone search page (back button, input, results)
   Hifz.tsx       — 4 tabs: Takror (SM-2 flip cards + blind mode + STT mic → Whisper match%), Suralar (start session → auto-switch to Takror), Xatolar (RED/YELLOW log), Statistika (dashboard: status counts, 7-day bar chart, top surahs progress bars)
@@ -173,8 +182,8 @@ pages/
 
 **Theme system:** CSS custom properties (--bg-primary etc.), 3 themes (dark/light/gray) via `data-theme` attr on `<html>`, persisted in localStorage.  
 **Audio CDN:** `https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/{n}.mp3` (surah), `.../audio/128/ar.alafasy/{sss}{vvv}.mp3` (verse).  
-**Desktop:** Sidebar (hidden lg:flex) with same nav items, max-w-2xl center column.  
-**Build status:** `✓ 2096 modules transformed` — 0 TypeScript xato
+**Desktop:** Sidebar (hidden lg:flex), max-w-2xl center column. Home: sticky widget full-width in content area, responsive font sizes (lg:text-lg, lg:text-[56px]).  
+**Build status:** `✓ 2129 modules transformed` — 0 TypeScript xato
 
 ---
 
@@ -204,6 +213,15 @@ pages/
 - [x] **Feature 2: Hifz Dashboard & Statistics** — backend `GET /hifz/dashboard/` (`get_hifz_dashboard` service: status_counts, 7-day daily_reviews, top_surahs); frontend `useHifzDashboard`, `StatsTab` component (4 status cards, bar chart, top surahs progress bars, total+due count), 4th "Statistika" tab in Hifz page
 - [x] **Optimization 1: persistQueryClient** — `@tanstack/react-query-persist-client` + `@tanstack/query-sync-storage-persister` in `main.tsx`; offline cache 24h, gcTime changed 30m→24h
 - [x] **Optimization 2: useMemo NavigationDrawer** — `pageNumbers` memoized with `useMemo(() => Array.from({length:604},...), [])` in NavigationDrawer
+
+### Phase 8 — Home Redesign (Prayer Widget) ✅ TAYYOR
+- [x] PrayerTimesWidget: city (Nominatim API + localStorage), Hijri date (Intl), big next-prayer time, HH:MM:SS countdown
+- [x] PrayerArc: SVG cubic bezier oval arc — 6 fixed prayer dots + glowing moving current-time pointer
+- [x] useSkyBackground: night/dawn/morning/midday/afternoon/sunset gradients, 60s update interval
+- [x] useCityName: Nominatim reverse geocoding, 7-day cache, graceful fallback
+- [x] Home: Payme-style sticky widget (z-0) + scrollable content card (z-10, -mt-8, rounded-t-3xl)
+- [x] App.tsx: showTopNav=false for home, tsconfig ignoreDeprecations 6.0→5.0 (TS 5.9 fix)
+- [x] Responsive: lg:pt-8, lg:text-lg, lg:text-[56px] — works on mobile + desktop
 
 ### Phase 7 — Deploy
 - [ ] `docker-compose.yml` — Django + Celery + Redis + Nginx

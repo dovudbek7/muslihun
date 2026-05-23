@@ -1,21 +1,11 @@
-import { Moon, Sun, Sunrise, Sunset, CloudSun, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import { usePrayerCountdown } from '@/hooks/usePrayerTimes'
 import { useSkyBackground } from '@/hooks/useSkyBackground'
 import { useCityName } from '@/hooks/useCityName'
 import { useGeolocation } from '@/hooks/useGeolocation'
 import { useUIStore } from '@/stores/uiStore'
 import { getHijriDate } from '@/utils/hijriDate'
-import { PRAYER_NAMES_UZ } from '@/types/prayer'
-import type { PrayerName } from '@/types/prayer'
-
-const PRAYERS: Array<{ key: PrayerName; Icon: React.ElementType }> = [
-  { key: 'Fajr',    Icon: Moon },
-  { key: 'Sunrise', Icon: Sunrise },
-  { key: 'Dhuhr',   Icon: Sun },
-  { key: 'Asr',     Icon: CloudSun },
-  { key: 'Maghrib', Icon: Sunset },
-  { key: 'Isha',    Icon: Moon },
-]
+import { PrayerArc } from './PrayerArc'
 
 function fmt(s: number) {
   const h = String(Math.floor(s / 3600)).padStart(2, '0')
@@ -35,15 +25,13 @@ export function PrayerTimesWidget() {
   return (
     <div
       className="relative w-full overflow-hidden select-none"
-      style={{ background, minHeight: 268, transition: 'background 8s ease' }}
+      style={{ background, transition: 'background 8s ease', minHeight: 260 }}
     >
-      {/* Top row */}
-      <div className="flex items-start justify-between px-5 pt-12">
+      {/* City + date row */}
+      <div className="flex items-start justify-between px-5 pt-6 lg:pt-8">
         <div>
-          <p className="text-white font-semibold text-base leading-tight">
-            {city || ' '}
-          </p>
-          <p className="text-white/65 text-xs mt-0.5">{hijriDate}</p>
+          <p className="text-white font-semibold text-base lg:text-lg leading-tight">{city || ' '}</p>
+          <p className="text-white/65 text-xs lg:text-sm mt-0.5">{hijriDate}</p>
         </div>
         <button
           onClick={() => openDrawer('settings')}
@@ -53,15 +41,15 @@ export function PrayerTimesWidget() {
         </button>
       </div>
 
-      {/* Next prayer + countdown */}
+      {/* Next prayer time + countdown */}
       <div className="text-center py-3">
         {countdown ? (
           <>
             <div className="flex items-baseline justify-center gap-1.5">
-              <span className="text-white text-[46px] font-bold tracking-tight leading-none">
+              <span className="text-white text-[46px] lg:text-[56px] font-bold tracking-tight leading-none">
                 {countdown.time}
               </span>
-              <span className="text-white/70 text-xl font-medium">da</span>
+              <span className="text-white/70 text-xl lg:text-2xl font-medium">da</span>
             </div>
             <p className="text-white/65 text-sm mt-1 font-mono tracking-wider">
               {fmt(countdown.seconds_remaining)} qoldi
@@ -75,40 +63,16 @@ export function PrayerTimesWidget() {
         )}
       </div>
 
-      {/* Prayer timeline */}
-      {timings && (
-        <div className="px-3 pb-6">
-          <div className="relative flex items-start justify-between">
-            {/* Dashed connector line */}
-            <div className="absolute left-6 right-6 top-[22px] border-t border-dashed border-white/25 pointer-events-none" />
-
-            {PRAYERS.map(({ key, Icon }) => {
-              const isNext = countdown?.name === key
-              const time = timings[key as keyof typeof timings]
-              const name = PRAYER_NAMES_UZ[key as keyof typeof PRAYER_NAMES_UZ]
-              return (
-                <div key={key} className="flex flex-col items-center gap-1 z-10 w-[16%]">
-                  <Icon
-                    size={15}
-                    className={isNext ? 'text-white' : 'text-white/45'}
-                  />
-                  <div
-                    className={`rounded-full mt-0.5 transition-all ${
-                      isNext ? 'w-3 h-3 bg-white shadow-[0_0_6px_2px_rgba(255,255,255,0.5)]' : 'w-1.5 h-1.5 bg-white/35'
-                    }`}
-                  />
-                  <p className={`text-[10px] font-semibold leading-tight text-center ${isNext ? 'text-white' : 'text-white/55'}`}>
-                    {name}
-                  </p>
-                  <p className={`text-[9px] font-mono leading-tight ${isNext ? 'text-white' : 'text-white/45'}`}>
-                    {time}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
+      {/* Oval arc prayer timeline */}
+      {timings ? (
+        <PrayerArc timings={timings} countdown={countdown} />
+      ) : (
+        <div className="h-28 flex items-center justify-center">
+          <div className="w-4/5 h-1 bg-white/10 rounded-full animate-pulse" />
         </div>
       )}
+
+      <div className="pb-4" />
     </div>
   )
 }

@@ -4,46 +4,66 @@ Phasalar tartibida. Har bir phase mustaqil, ketma-ket qilinadi.
 
 ---
 
-## Phase 1 — Home Page: Prayer Times Widget
+## ✅ Phase 1 — Home Page: Prayer Times Widget
 
-### Maqsad
-Asosiy sahifada tepaga namoz vaqtlarini AlQuranUz uslubida chiqarish + Payme uslubida scroll qilganda yig'ilishi.
+> **DONE** — pushed to main
 
-### UI Tuzilmasi
+### Amalga oshirilgan
 ```
-┌─────────────────────────────────────┐
-│  Shahar nomi          🔔 (notification)│
-│  Hijriy sana                        │
-│                                     │
-│         04:45 (keyingi namoz)       │
-│         00:16:09 qoldi              │
-│                                     │
-│  ○────●────○────○────○────○         │
-│ Bomdod Quyosh Peshin Asr Shom Xufton│
-│  03:11  04:45  12:07 17:17 19:34 21:03│
-└─────────────────────────────────────┘
-│  [Qur'on] [Al-Fatiha] [Audio] ...   │  ← bu qism scroll qiladi
-│                                     │
+┌─────────────────────────────────────────┐  ← sky gradient (vaqtga qarab o'zgaradi)
+│  Asaka shahri                  ⚙       │
+│  6 Dhu'l-Hijjah, 1447                  │
+│                                         │
+│         12:08 da                        │  ← keyingi namoz vaqti (katta)
+│         06:29:35 qoldi                  │  ← HH:MM:SS countdown
+│                                         │
+│      ╭─────────────────╮               │  ← SVG oval cubic bezier arc
+│   🌙 ☀ ●  ☀  ☁  🌅  🌙               │  ← ikonkalar arc ustida
+│  ○   ○   ⬤  ○   ○   ○                 │  ← ⬤ = joriy vaqt ko'chuvchi pointer
+│ Bom Quy Pes Asr Shom Xuf              │
+│ 03:11 04:45 12:08 16:05 19:27 21:...  │
+└─────────────────────────────────────────┘
+│  ══════════════════════════════════════  │  ← drag handle
+│  dovudbek                   🔥 1        │
+│  [Qur'on]  [Hifz]  [Tasbih] [Qidiruv] │
+│  [O'qishni davom ettirish →]           │
+│  Suralar ro'yxati...                   │
 ```
 
-### Scroll Behavior (Payme uslubi)
-- Widget tepada `position: sticky` yoki parallax — scroll qilganda pastdagi kontent USTIGA chiqib keladi va widget yopiladi (overlap)
-- Widget to'liq yopilganda: faqat kichik status bar qoladi (joriy namoz nomi + vaqt)
-- Qaytganda (scroll yuqoriga) — widget yana ochiladi, smooth animation
+### Scroll Behavior (Payme uslubi) — amalga oshirildi
+- Widget: `sticky top-0 z-0` — joyida qoladi
+- Content card: `z-10, -mt-8, rounded-t-[28px]` — scroll qilganda widget ustiga chiqib yopadi
+- `useScrollPosition` hook kerak bo'lmadi — sodda CSS z-index overlap yetarli
 
-### Texnik Detallar
-- `PrayerTimesWidget` — alohida komponent, home page tepasida
-- Scroll listener → `useScrollPosition` hook → threshold'ga yetganda collapse
-- Arc/timeline: SVG yoki CSS gradient line, active namoz ball bilan belgilanadi
-- Countdown: `useInterval` 1s, keyingi namoz vaqtiga qadar
-- Ma'lumot: mavjud backend `/api/v1/prayer/times/?lat=&lon=` dan
-- Geolocation: `navigator.geolocation` API, ruxsat so'rash
-- Hijriy sana: `Intl` yoki `hijri-js` kutubxona
+### Sky Gradient (6 davr)
+| Davr | Vaqt | Rang |
+|------|------|------|
+| night | Xufton → Bomdod | `#080E1F → #0D1A3A` |
+| dawn | Bomdod → Quyosh | `#0D1033 → #D4622A → #E89040` |
+| morning | Quyosh → Peshin | `#E8904A → #87CEEB → #4A90C4` |
+| midday | Peshin → Asr | `#2160A8 → #87CEEB → #B8E0F4` |
+| afternoon | Asr → Shom | `#5AA8D8 → #E8C870 → #E89040` |
+| sunset | Shom → Xufton | `#E07832 → #8B2252 → #1E0A2A` |
 
-### Fayllar
-- `src/components/PrayerTimesWidget.tsx` (yangi)
-- `src/pages/Home.tsx` — widget qo'shish, scroll listener
-- `src/hooks/usePrayerTimes.ts` — API call, countdown logika
+### Responsive / Ko'p Qurilma
+| Qurilma | Widget | Scroll effekti | Arc |
+|---------|--------|---------------|-----|
+| 📱 Tel | `sticky top-0`, to'liq ekran kenglik | content pastdan chiqib yopadi | SVG stretches, pointer ko'rinadi |
+| 💻 Komp | `max-w-2xl` ichida, `lg:pt-8`, katta shriftlar | bir xil sticky behavior | arc wider but proportional |
+| 🖥️ Tablet | Tel bilan bir xil | bir xil | bir xil |
+
+- Desktop: `lg:text-[56px]` time, `lg:text-lg` city — kattaroq
+- Arc: `preserveAspectRatio="none"` → har qanday kenglikda to'g'ri ko'rinadi
+- Sky gradient: barcha qurilmalarda bir xil (CSS `background` property)
+
+### Yaratilgan fayllar
+- `src/components/prayer/PrayerTimesWidget.tsx` — asosiy widget
+- `src/components/prayer/PrayerArc.tsx` — SVG oval arc, cubic bezier `M 18 62 C 88 4, 272 4, 342 62`, joriy vaqt pointer glow bilan
+- `src/hooks/useSkyBackground.ts` — 6 davr gradient, 60s interval
+- `src/hooks/useCityName.ts` — Nominatim reverse geocoding, 7-kun localStorage cache
+- `src/utils/hijriDate.ts` — `Intl` API islamic-umalqura
+- `src/pages/Home.tsx` — to'liq qayta yozildi
+- `src/App.tsx` — `showTopNav={false}` home route uchun
 
 ---
 
@@ -80,12 +100,25 @@ Mushafda 3 xil ko'rinish rejimi: vertikal scroll, sahifa-sahifa, kattalashtirish
 - Mushaf sahifasida tepada kichik icon row: `↕` | `📖` | `🔍`
 - Tanlov `mushafStore` da saqlanadi (persist)
 
+### Responsive / Ko'p Qurilma
+| Qurilma | Rejim 1 (Vertikal) | Rejim 2 (Sahifa) | Rejim 3 (Zoom) |
+|---------|-------------------|-----------------|----------------|
+| 📱 Tel | scroll + touch | swipe left/right | pinch-to-zoom |
+| 💻 Komp | mouse scroll + ↑↓ klaviatura | ← → klaviatura yoki button | scroll wheel zoom (Ctrl+scroll) |
+| 🖥️ Tablet | scroll + swipe | swipe | pinch-to-zoom |
+
+- **Desktop rejim tanlash:** tepada tab yoki keyboard shortcut `1/2/3`
+- **Mobile swipe:** `touchstart/touchend` delta > 50px → sahifa o'tish (Rejim 2)
+- **Desktop klaviatura:** `ArrowLeft/ArrowRight` → sahifa, `ArrowUp/ArrowDown` → scroll (Rejim 1)
+- Max kontent kengligi: `max-w-2xl` (672px) barcha qurilmalarda — o'rtada joylashgan
+
 ### Texnik Detallar
 - `src/components/mushaf/VerticalScroll.tsx`
 - `src/components/mushaf/PageView.tsx`
 - `src/components/mushaf/ZoomablePageView.tsx`
 - `src/stores/mushafStore.ts` — `mode: 'vertical' | 'page' | 'zoom'`, `currentPage`, `zoom`
 - Backend: `GET /api/v1/quran/pages/{n}/` — mavjud
+- `useKeyboardNav` hook — desktop klaviatura navigatsiyasi
 
 ---
 
@@ -108,6 +141,17 @@ Pastki amal paneli (Quran Majeed uslubi) + Auto Scroll funksiyasi.
 - Tezlik: sozlanadi (slider yoki 3 level: sekin/o'rta/tez)
 - Tezlik saqlanadi `mushafStore`da
 - To'xtatish: paneldan `Auto Scroll` ni yana bosish yoki manual scroll qilish
+
+### Responsive / Ko'p Qurilma
+| Qurilma | Bottom Bar | Auto Scroll |
+|---------|-----------|-------------|
+| 📱 Tel | `fixed bottom-0`, ustidan BottomNav yuqorida, overflow scroll | touch scroll bilan pause |
+| 💻 Komp | `sticky bottom-0` content ichida, barcha tugmalar ko'rinadi (scroll yo'q) | Space tugma pause/resume |
+| 🖥️ Tablet | Tel bilan bir xil | Tel bilan bir xil |
+
+- Desktop: BottomNav yo'q (`hidden lg:flex` Sidebar bor) → ActionBar pastda ko'rinadi
+- Mobile: 6 tugma sig'masa → `overflow-x: auto; scrollbar-width: none`
+- Auto Scroll tezlik: tel = slider (bottom sheet), komp = +/- tugmalar yoki scroll wheel
 
 ### Texnik Detallar
 - `src/components/mushaf/BottomActionBar.tsx` (yangi)
@@ -145,10 +189,22 @@ Oyatga bosganda pozitsiya belgilash, uzun bosganda tafsir bilan detail panel.
 - Tafsir inline chiqadi — user alohida tafsir tugmasini bosmasin
 - Mavjud detail panel saqlanadi, faqat tafsir qo'shiladi
 
+### Responsive / Ko'p Qurilma
+| Qurilma | Tap | Long Press | Detail Panel |
+|---------|-----|-----------|-------------|
+| 📱 Tel | 1 bosish = highlight | 3s bosib turish = panel | bottom sheet (`translate-y`) |
+| 💻 Komp | 1 klik = highlight | hover 1s + klik = panel | centered modal (dialog) |
+| 🖥️ Tablet | Tel bilan bir xil | Tel bilan bir xil | bottom sheet |
+
+- Desktop: `navigator.vibrate()` mavjud emas — vibratsiya skip
+- Desktop panel: `position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%)` — markazda
+- Mobile panel: `position: fixed; bottom: 0; left: 0; right: 0` — pastdan chiqadi
+- Trigger farqi: `window.matchMedia('(pointer: coarse)')` — touch vs mouse aniqlash
+
 ### Texnik Detallar
 - `src/components/VerseDetailSheet.tsx` — tafsir qo'shish
-- Long press: `useLongPress` hook — 3000ms threshold, `onLongPress` callback
-- Tafsir API: `GET /api/v1/quran/verses/{id}/tafsir/` (backend mavjud bo'lsa) yoki inline `verse.tafsir`
+- Long press: `useLongPress` hook — 3000ms threshold (touch) / 1000ms hover (desktop)
+- Tafsir API: `GET /api/v1/quran/verses/{id}/tafsir/` yoki inline `verse.tafsir`
 - `src/stores/quranStore.ts` — `highlightedVerse: number | null`
 
 ---
@@ -183,12 +239,26 @@ Hozirgi recording tizimini 2 rejimga bo'lish + qayerdan boshlanishini avtomatik 
 - Boshidan boshlashga majbur qilinmaydi
 - Quran Majeed dan farqi: ular ham Tarteel ham o'rtadan boshlash imkonini beradi
 
+### Responsive / Ko'p Qurilma
+| Qurilma | Mikrofon | UI | Highlight |
+|---------|---------|-----|-----------|
+| 📱 Tel | built-in mic, `MediaRecorder` | to'liq ekran overlay | word + ayah level |
+| 💻 Komp | external/built-in mic, HTTPS kerak | sidebar yonida panel | ayah level (word optional) |
+| 🖥️ Tablet | Tel bilan bir xil | Tel bilan bir xil | Tel bilan bir xil |
+
+- Desktop: `getUserMedia` HTTPS'da ishlaydi — lokal dev'da ham (`localhost` exempt)
+- Desktop UI: Recitation panel o'ng tomonda `fixed right-0` panel ko'rinishi
+- Mobile UI: pastdan chiqadigan sheet yoki to'liq ekran overlay
+- Klaviatura: Space = pause/resume, Escape = to'xtatish (desktop)
+- Xato ko'rsatish: tel = red highlight + gentle vibrate, komp = red highlight + tooltip
+
 ### Texnik Detallar
 - `src/components/RecitationMode.tsx` — mode selector
 - `src/hooks/useRecitation.ts` — mikrofon, Web Speech API yoki custom ASR
 - `src/stores/recitationStore.ts` — `mode: 'practice' | 'check'`, `currentPosition`, `mistakes[]`
 - Highlight sync: recitation store → mushaf store → UI
 - Position detection: phoneme similarity, fuzzy match Qur'on matni bilan
+- `window.matchMedia('(pointer: coarse)')` — touch/mouse UI branch
 
 ---
 
@@ -218,11 +288,24 @@ Tajvid qoidalarini ranglar bilan ko'rsatish — toggle yoqsa har so'z/harf rangi
 - Ma'lumot manbasi: `quran.json` bilan birga yoki alohida `tajweed.json`
 - Backend model qo'shish kerak yoki frontend JSON
 
+### Responsive / Ko'p Qurilma
+| Qurilma | Toggle | Rang ko'rish | Qoida nomi |
+|---------|--------|-------------|-----------|
+| 📱 Tel | Settings ichida switch | rangli matn | bosish = pastdan tooltip |
+| 💻 Komp | TopNav yoki Settings toggle | rangli matn | hover = floating tooltip |
+| 🖥️ Tablet | Tel bilan bir xil | rangli matn | bosish = tooltip |
+
+- Barcha qurilmalarda: CSS `<span class="tajweed-X">` — bir xil render
+- Desktop hover tooltip: `position: absolute`, CSS `:hover` bilan — JS kerak emas
+- Mobile tap tooltip: `useState` bilan show/hide, ekran chekkasida chiqib ketmasin (clamp)
+- Rang legenda: tel = bottom sheet modal, komp = sidebar panel yoki inline accordion
+
 ### Texnik Detallar
 - `src/components/TajweedText.tsx` — tajvid ranglarini render qilish
 - `src/data/tajweed.json` — tajvid ma'lumotlari (so'z darajasida)
 - `src/stores/settingsStore.ts` — `tajweedEnabled: boolean`
 - CSS: `.tajweed-ghunna`, `.tajweed-qalqala`, ... klasslari
+- Tooltip: `@media (hover: hover)` — desktop hover, aks holda click
 
 ---
 
@@ -252,24 +335,38 @@ qiblaAngle = atan2(
 ### Home sahifasiga qo'shish
 - Home dagi icon grid ga: `[🧭 Qibla]` tugmasi
 
+### Responsive / Ko'p Qurilma
+| Qurilma | Kompas | Fallback |
+|---------|--------|---------|
+| 📱 Tel | `DeviceOrientationEvent` — real aylanuvchi kompas | Ruxsat berilmasa: statik yo'nalish |
+| 💻 Komp | Gyroskop yo'q — kompas aylanmaydi | Qibla burchagi + masofa matn ko'rinishida |
+| 🖥️ Tablet | Gyroskop bor bo'lsa — ishlaydi, yo'q bo'lsa komp kabi | Komp bilan bir xil |
+
+- Desktop UI: kompas doirasi statik, faqat Makka yo'nalishi arrow ko'rsatiladi
+- `'DeviceOrientationEvent' in window` — qurilma tekshirish
+- iOS 13+: `DeviceOrientationEvent.requestPermission()` — user ruxsati kerak
+- Android: avtomatik, ruxsat so'ralmasdan
+- Kompas SVG: `transform: rotate(${angle}deg)` — universal (tel va tablet)
+
 ### Texnik Detallar
 - `src/pages/QiblaPage.tsx` (yangi)
 - `src/hooks/useQibla.ts` — geolocation + device orientation + hisoblash
 - `src/hooks/useDeviceCompass.ts` — `DeviceOrientationEvent` wrapper
+- `hasGyroscope: boolean` state — desktop fallback UI branch
 
 ---
 
 ## Bajarish Tartibi
 
-| Phase | Nomi | Murakkablik |
-|-------|------|-------------|
-| 1 | Prayer Times Widget | O'rta |
-| 2 | Mushaf 3 rejim | Yuqori |
-| 3 | Bottom Bar + Auto Scroll | Past |
-| 4 | Oyat interaksiyasi + Tafsir | O'rta |
-| 5 | Ovozli o'qish tizimi | Yuqori |
-| 6 | Tajvid ranglash | O'rta |
-| 7 | Qibla Finder | Past |
+| Phase | Nomi | Holat |
+|-------|------|-------|
+| 1 | Prayer Times Widget | ✅ DONE |
+| 2 | Mushaf 3 rejim | ⏳ Navbatda |
+| 3 | Bottom Bar + Auto Scroll | ⏳ Navbatda |
+| 4 | Oyat interaksiyasi + Tafsir | ⏳ Navbatda |
+| 5 | Ovozli o'qish tizimi | ⏳ Navbatda |
+| 6 | Tajvid ranglash | ⏳ Navbatda |
+| 7 | Qibla Finder | ⏳ Navbatda |
 
 ---
 
@@ -307,14 +404,16 @@ git push origin main
 | `feat(phase-6):` | Tajweed coloring mode |
 | `feat(phase-7):` | Qibla finder compass |
 
-### Namuna Commit (Phase 1)
+### Amalga oshirilgan Commit (Phase 1)
 ```
-feat(phase-1): add prayer times widget with collapsible scroll
+feat(phase-1): add prayer times widget with dynamic sky and oval arc
 
-- PrayerTimesWidget: arc timeline, 6 prayer times, countdown
-- Payme-style collapse on scroll (overlap animation)
-- useScrollPosition hook, usePrayerTimes hook
-- Geolocation + Aladhan API integration
+- PrayerTimesWidget: city (Nominatim), Hijri date, next prayer, HH:MM:SS countdown
+- PrayerArc: SVG cubic bezier oval arc, 6 prayer dots, glowing current-time pointer
+- useSkyBackground: 6 sky periods (night/dawn/morning/midday/afternoon/sunset)
+- useCityName: Nominatim reverse geocoding with 7-day localStorage cache
+- Home: Payme-style sticky widget (z-0) + content card (z-10, -mt-8)
+- Responsive: lg:pt-8, lg:text-[56px] for desktop
 ```
 
 ---
