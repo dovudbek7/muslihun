@@ -30,15 +30,29 @@ export function useGeolocation() {
       return
     }
 
+    let settled = false
+    const fallback = () => {
+      if (!settled) {
+        settled = true
+        setState({ latitude: 41.3, longitude: 69.3, error: null, loading: false })
+      }
+    }
+
+    const timer = setTimeout(fallback, 5000)
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        clearTimeout(timer)
+        if (settled) return
+        settled = true
         const lat = pos.coords.latitude
         const lon = pos.coords.longitude
         localStorage.setItem('muslihun-coords', JSON.stringify({ lat, lon, ts: Date.now() }))
         setState({ latitude: lat, longitude: lon, error: null, loading: false })
       },
       () => {
-        setState({ latitude: 41.3, longitude: 69.3, error: null, loading: false })
+        clearTimeout(timer)
+        fallback()
       },
       { timeout: 8000, maximumAge: 3600000 }
     )
