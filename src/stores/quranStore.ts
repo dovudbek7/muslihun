@@ -18,6 +18,7 @@ interface QuranState {
   showInlineTafsir: boolean
   reciterIdentifier: ReciterId
   activeTafsirVerse: { surah: number; verse: number } | null
+  highlightedVerse: number | null
   mushafFullscreen: boolean
   activeRecitationVerse: { surahNumber: number; verseNumber: number; arabicText: string } | null
   activeContinuousRecitation: {
@@ -27,6 +28,7 @@ interface QuranState {
   } | null
   continuousActiveVerseIdx: number
 
+  setHighlightedVerse: (n: number | null) => void
   setCurrentSurah: (n: number) => void
   setCurrentVerse: (n: number) => void
   setCurrentPage: (n: number) => void
@@ -72,11 +74,13 @@ export const useQuranStore = create<QuranState>()(
       showInlineTafsir: false,
       reciterIdentifier: 'ar.alafasy',
       activeTafsirVerse: null,
+      highlightedVerse: null,
       mushafFullscreen: false,
       activeRecitationVerse: null,
       activeContinuousRecitation: null,
       continuousActiveVerseIdx: 0,
 
+      setHighlightedVerse: (n) => set({ highlightedVerse: n }),
       setCurrentSurah: (n) => set({ currentSurah: n }),
       setCurrentVerse: (n) => set({ currentVerse: n }),
       setCurrentPage: (n) => set({ currentPage: n }),
