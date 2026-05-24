@@ -8,6 +8,7 @@ import { useAudioStore } from '@/stores/audioStore'
 import { useSurah, useSurahs } from '@/api/quran'
 import type { Verse } from '@/types/quran'
 import { loadProgress } from '@/utils/recitationProgress'
+import { SURAH_START_PAGE } from '@/data/surahStartPage'
 import { VerseCard } from '@/components/quran/VerseCard'
 import { VerticalScroll } from '@/components/mushaf/VerticalScroll'
 import { VerseCardSkeleton } from '@/components/ui/Skeleton'
@@ -116,13 +117,8 @@ export function Reader() {
   }
 
   if (readingMode === 'mushaf') {
-    return (
-      <VerticalScroll
-        verses={verses}
-        surah={surahData ?? surah ?? null}
-        fontSize={fontSize}
-      />
-    )
+    const startPage = SURAH_START_PAGE[activeSurah] ?? 1
+    return <VerticalScroll startPage={startPage} fontSize={fontSize} />
   }
 
   return (
